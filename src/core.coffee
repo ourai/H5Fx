@@ -1,0 +1,2 @@
+class Validator
+  constructor: ( target ) ->
