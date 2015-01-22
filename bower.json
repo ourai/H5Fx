@@ -1,0 +1,22 @@
+{
+  "name": "validator",
+  "version": "0.0.1",
+  "main": [
+    "dest/javascripts/validator.min.js",
+    "dest/stylesheets/validator.min.css"],
+  "license": "MIT",
+  "ignore": ["**/*", "!dest/**/*"],
+  "dependencies": {
+    "jquery": "https://github.com/jquery/jquery.git#1.8.3"
+  },
+  "devDependencies": {
+    "normalize.css": "https://github.com/necolas/normalize.css.git#3.0.0"
+  },
+  "keywords": [
+    "form",
+    "validation",
+    "validator",
+    "html5",
+    "javascript"
+  ]
+}
