@@ -55,11 +55,8 @@ class Validator
     if @required and $.trim(val) is ""
       @valid = false
       @message = ERROR.COULD_NOT_BE_EMPTY
-
-      return false
-
     # checkbox 和 radio 不需要验证
-    if $.inArray(@type, ["checkbox", "radio", "password", "hidden"]) is -1
+    else if $.inArray(@type, ["checkbox", "radio", "password", "hidden"]) is -1
       switch @type
         when "text", "textarea"
           @valid = (new RegExp "^#{@pattern}$").test val
@@ -84,4 +81,9 @@ class Validator
         else
           @message = ERROR.UNKNOWN_INPUT_TYPE
 
+    $(ele).trigger "validate:#{if @valid then "success" else "fail"}", @
+
     return @valid
+
+  @setErrMsg = ( msgs ) ->
+    $.extend ERROR, msgs
