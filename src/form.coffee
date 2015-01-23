@@ -1,9 +1,9 @@
-$(document).on "submit", "form", ->
+$(document).on "submit", "form:not([data-novalidate])", ->
   passed = true
 
   $.each $(@).data("ValidatableFields"), ->
     @reset()
-    
+
     if not @validate()
       passed = false
       console.log @, @message
@@ -15,11 +15,13 @@ $(document).on "submit", "form", ->
 $(document).ready ->
   $("form").each ->
     form = $(@)
-    fields = []
 
     form.attr "novalidate", true
 
-    $("[name]", form).each ->
-      fields.push new Validator @
+    if not form.attr("data-novalidate")?
+      fields = []
+      
+      $("[name]:not(select)", form).each ->
+        fields.push new Validator @
 
-    form.data "ValidatableFields", fields
+      form.data "ValidatableFields", fields
