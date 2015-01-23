@@ -1,5 +1,5 @@
 REGEXP =
-  NUMBER = /^\d+(\.0+)?$/
+  NUMBER: /^\d+(\.0+)?$/
 
 ERROR =
   COULD_NOT_BE_EMPTY: "COULD_NOT_BE_EMPTY"
@@ -19,6 +19,10 @@ getExtremum = ( ele, type ) ->
 
   return if $.isNumeric(val) then toNum(val) else null
 
+reset = ->
+  @valid = true
+  @message = ""
+
 class Validator
   constructor: ( ele ) ->
     ele = $ ele
@@ -30,11 +34,12 @@ class Validator
     @type = ele.attr("type") ? "text"
     @required = ele.prop "required"
 
-    @valid = true
-    @message = ""
+    reset.call @
 
   value: ->
     return $(@element).val()
+
+  reset: reset
 
   validate: ->
     ele = $ @element
@@ -50,7 +55,7 @@ class Validator
     if $.inArray(@type, ["checkbox", "radio", "password", "hidden"]) is -1
       switch @type
         when "text"
-          @valid = (new RegExp @pattern).test val
+          @valid = (new RegExp "^#{@pattern}$").test val
           @message = ERROR.INVALID_VALUE if not @valid
         when "number"
           @valid = REGEXP.NUMBER.test val

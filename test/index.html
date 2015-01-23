@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <script src="./jquery.min.js"></script>
+    <script src="./javascripts/validator.js"></script>
+  </head>
+  <body>
+    <form id="form_1" action="/" method="get">
+      <input type="text" value="" required="required" minlength="2" maxlength="4">
+      <input type="number" value="" required="required" pattern=".*0">
+      <input type="submit">
+    </form>
+    <form id="form_2" action="/" method="get">
+      <input type="text" name="form_2_1" value="" pattern=".*0" required="required" minlength="2" maxlength="4">
+      <input type="number" name="form_2_2" value="" required="required" min="5" max="10" pattern=".*0">
+      <input type="submit">
+    </form>
+  </body>
+</html>
