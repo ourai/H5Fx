@@ -31,8 +31,10 @@ module.exports = ( grunt ) ->
       coffee:
         files:
           "<%= meta.temp %>/<%= pkg.name %>.coffee": [
+              "src/intro.coffee"
               "src/validator.coffee"
               "src/form.coffee"
+              "src/outro.coffee"
             ]
       js_normal:
         options:
