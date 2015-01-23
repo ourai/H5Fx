@@ -6,7 +6,6 @@ $(document).on "submit", "form:not([data-novalidate])", ->
 
     if not @validate()
       passed = false
-      console.log @, @message
 
     return true
 
@@ -20,8 +19,8 @@ $(document).ready ->
 
     if not form.attr("data-novalidate")?
       fields = []
-      
-      $("[name]:not(select)", form).each ->
+
+      $("[name]:not(select, [type='checkbox'], [type='radio'])", form).each ->
         fields.push new Validator @
 
       form.data "ValidatableFields", fields
