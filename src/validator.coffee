@@ -9,19 +9,26 @@ ERROR =
   UNDERFLOW: "UNDERFLOW"
   OVERFLOW: "OVERFLOW"
 
+elementType = ( ele ) ->
+  switch ele.get(0).tagName.toLowerCase()
+    when "textarea" then type = "textarea"
+    when "input" then type = ele.attr("type") ? "text"
+
+  return type
+
+reset = ->
+  @valid = true
+  @message = ""
+
 # 转换为数字
 toNum = ( str ) ->
   return parseFloat str
 
 # 获取极值
 getExtremum = ( ele, type ) ->
-  val = ele.prop type
+  val = $(ele).prop type
 
   return if $.isNumeric(val) then toNum(val) else null
-
-reset = ->
-  @valid = true
-  @message = ""
 
 class Validator
   constructor: ( ele ) ->
@@ -31,7 +38,7 @@ class Validator
     @form = ele.closest("form").get 0
 
     @pattern = ele.attr "pattern"
-    @type = ele.attr("type") ? "text"
+    @type = elementType ele
     @required = ele.prop "required"
 
     reset.call @
@@ -42,8 +49,8 @@ class Validator
   reset: reset
 
   validate: ->
-    ele = $ @element
-    val = ele.val()
+    ele = @element
+    val = @value()
 
     if @required and $.trim(val) is ""
       @valid = false
@@ -54,7 +61,7 @@ class Validator
     # checkbox 和 radio 不需要验证
     if $.inArray(@type, ["checkbox", "radio", "password", "hidden"]) is -1
       switch @type
-        when "text"
+        when "text", "textarea"
           @valid = (new RegExp "^#{@pattern}$").test val
           @message = ERROR.INVALID_VALUE if not @valid
         when "number"
