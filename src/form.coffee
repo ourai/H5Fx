@@ -22,10 +22,11 @@ Form =
 
   # 自定义出错信息
   errors: ( msgs ) ->
-    $.extend ERROR, msgs
+    return $.extend ERROR, msgs
 
   # 自定义验证规则
-  # rules: ( rules ) ->
+  rules: ( rules ) ->
+    return $.extend RULE, rules
 
 $(document).on "submit", "form:not([data-novalidate])", ->
   passed = true
