@@ -82,6 +82,6 @@ class Field
         else
           @message = ERROR.UNKNOWN_INPUT_TYPE
 
-    $(ele).trigger "validate:#{if @valid then "success" else "fail"}", @
+    $(ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
 
     return @valid

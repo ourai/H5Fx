@@ -17,8 +17,8 @@
           OVERFLOW: "上溢"
         });
 
-        $("[name]").on("validate:fail", function( e, v ) {
-          console.log(v);
+        $("[name]").on("H5F:invalid", function( e, field ) {
+          console.log(field);
         });
       });
     </script>
