@@ -1,4 +1,4 @@
-REGEXP =
+RULE =
   NUMBER: /^\d+(\.0+)?$/
 
 ERROR =
@@ -30,7 +30,7 @@ getExtremum = ( ele, type ) ->
 
   return if $.isNumeric(val) then toNum(val) else null
 
-class Validator
+class Field
   constructor: ( ele ) ->
     ele = $ ele
 
@@ -56,13 +56,14 @@ class Validator
       @valid = false
       @message = ERROR.COULD_NOT_BE_EMPTY
     # checkbox 和 radio 不需要验证
-    else if $.inArray(@type, ["checkbox", "radio", "password", "hidden"]) is -1
+    else if $.inArray(@type, ["checkbox", "radio", "hidden"]) is -1
       switch @type
-        when "text", "textarea"
-          @valid = (new RegExp "^#{@pattern}$").test val
-          @message = ERROR.INVALID_VALUE if not @valid
+        when "text", "password", "textarea"
+          if @pattern? and @pattern isnt ""
+            @valid = (new RegExp "^#{@pattern}$").test val
+            @message = ERROR.INVALID_VALUE if not @valid
         when "number"
-          @valid = REGEXP.NUMBER.test val
+          @valid = RULE.NUMBER.test val
 
           if @valid
             minVal = getExtremum ele, "min"
@@ -84,6 +85,3 @@ class Validator
     $(ele).trigger "validate:#{if @valid then "success" else "fail"}", @
 
     return @valid
-
-  @setErrMsg = ( msgs ) ->
-    $.extend ERROR, msgs

@@ -16,14 +16,14 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, LIB_CONFIG, REGEXP, Validator, elementType, getExtremum, reset, toNum;
+var ERROR, Field, Form, LIB_CONFIG, RULE, elementType, getExtremum, reset, toNum;
 
 LIB_CONFIG = {
-  name: "Validator",
+  name: "H5F",
   version: "0.0.1"
 };
 
-REGEXP = {
+RULE = {
   NUMBER: /^\d+(\.0+)?$/
 };
 
@@ -67,8 +67,8 @@ getExtremum = function(ele, type) {
   }
 };
 
-Validator = (function() {
-  function Validator(ele) {
+Field = (function() {
+  function Field(ele) {
     ele = $(ele);
     this.element = ele.get(0);
     this.form = ele.closest("form").get(0);
@@ -78,30 +78,33 @@ Validator = (function() {
     reset.call(this);
   }
 
-  Validator.prototype.value = function() {
+  Field.prototype.value = function() {
     return $(this.element).val();
   };
 
-  Validator.prototype.reset = reset;
+  Field.prototype.reset = reset;
 
-  Validator.prototype.validate = function() {
+  Field.prototype.validate = function() {
     var ele, maxVal, minVal, val;
     ele = this.element;
     val = this.value();
     if (this.required && $.trim(val) === "") {
       this.valid = false;
       this.message = ERROR.COULD_NOT_BE_EMPTY;
-    } else if ($.inArray(this.type, ["checkbox", "radio", "password", "hidden"]) === -1) {
+    } else if ($.inArray(this.type, ["checkbox", "radio", "hidden"]) === -1) {
       switch (this.type) {
         case "text":
+        case "password":
         case "textarea":
-          this.valid = (new RegExp("^" + this.pattern + "$")).test(val);
-          if (!this.valid) {
-            this.message = ERROR.INVALID_VALUE;
+          if ((this.pattern != null) && this.pattern !== "") {
+            this.valid = (new RegExp("^" + this.pattern + "$")).test(val);
+            if (!this.valid) {
+              this.message = ERROR.INVALID_VALUE;
+            }
           }
           break;
         case "number":
-          this.valid = REGEXP.NUMBER.test(val);
+          this.valid = RULE.NUMBER.test(val);
           if (this.valid) {
             minVal = getExtremum(ele, "min");
             maxVal = getExtremum(ele, "max");
@@ -124,18 +127,39 @@ Validator = (function() {
     return this.valid;
   };
 
-  Validator.setErrMsg = function(msgs) {
-    return $.extend(ERROR, msgs);
-  };
-
-  return Validator;
+  return Field;
 
 })();
 
+Form = {
+  version: LIB_CONFIG.version,
+  init: function(forms) {
+    return $(forms).each(function() {
+      var fields, flag, form;
+      form = $(this);
+      flag = "H5F-inited";
+      if (form.data(flag) !== true) {
+        form.attr("novalidate", true);
+        if (form.attr("data-novalidate") == null) {
+          fields = [];
+          $("[name]:not(select, [type='checkbox'], [type='radio'])", form).each(function() {
+            return fields.push(new Field(this));
+          });
+          form.data("H5F-fields", fields);
+        }
+        return form.data(flag, true);
+      }
+    });
+  },
+  errors: function(msgs) {
+    return $.extend(ERROR, msgs);
+  }
+};
+
 $(document).on("submit", "form:not([data-novalidate])", function() {
-  var passed;
+  var passed, _ref;
   passed = true;
-  $.each($(this).data("ValidatableFields"), function() {
+  $.each((_ref = $(this).data("H5F-fields")) != null ? _ref : [], function() {
     this.reset();
     if (!this.validate()) {
       passed = false;
@@ -145,21 +169,6 @@ $(document).on("submit", "form:not([data-novalidate])", function() {
   return passed;
 });
 
-$(document).ready(function() {
-  return $("form").each(function() {
-    var fields, form;
-    form = $(this);
-    form.attr("novalidate", true);
-    if (form.attr("data-novalidate") == null) {
-      fields = [];
-      $("[name]:not(select, [type='checkbox'], [type='radio'])", form).each(function() {
-        return fields.push(new Validator(this));
-      });
-      return form.data("ValidatableFields", fields);
-    }
-  });
-});
-
-window[LIB_CONFIG.name] = Validator;
+window[LIB_CONFIG.name] = Form;
 
 }));

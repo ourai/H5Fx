@@ -2,5 +2,5 @@
 
 # Config of library
 LIB_CONFIG =
-  name: "@NAME"
+  name: "H5F"
   version: "@VERSION"

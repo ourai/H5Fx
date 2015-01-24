@@ -1,1 +1,1 @@
-window[LIB_CONFIG.name] = Validator
+window[LIB_CONFIG.name] = Form

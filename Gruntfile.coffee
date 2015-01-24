@@ -20,7 +20,7 @@ module.exports = ( grunt ) ->
       modules: "src/javascripts/modules"
       mod_cmpt: "<%= meta.modules %>/Component"
 
-      temp: ".<%= pkg.name %>-cache"
+      temp: ".<%= pkg.name.toLowerCase() %>-cache"
       image: "src/images"
 
       dest: "dest"
@@ -30,9 +30,9 @@ module.exports = ( grunt ) ->
     concat:
       coffee:
         files:
-          "<%= meta.temp %>/<%= pkg.name %>.coffee": [
+          "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.coffee": [
               "src/intro.coffee"
-              "src/validator.coffee"
+              "src/field.coffee"
               "src/form.coffee"
               "src/outro.coffee"
             ]
@@ -43,34 +43,34 @@ module.exports = ( grunt ) ->
               return info[key.toLowerCase()]
         src: [
             "build/intro.js"
-            "<%= meta.temp %>/<%= pkg.name %>.js"
+            "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.js"
             "build/outro.js"
           ]
-        dest: "<%= meta.dest_script %>/<%= pkg.name %>.js"
+        dest: "<%= meta.dest_script %>/<%= pkg.name.toLowerCase() %>.js"
     coffee:
       options:
         bare: true
         separator: "\x20"
       build_normal:
-        src: "<%= meta.temp %>/<%= pkg.name %>.coffee"
-        dest: "<%= meta.temp %>/<%= pkg.name %>.js"
+        src: "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.coffee"
+        dest: "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.js"
       test:
         src: "<%= meta.tests %>/test.coffee"
         dest: "<%= meta.tests %>/test.js"
     uglify:
       options:
         banner: "/*!\n" +
-                " * <%= repo.name %> UI Library v<%= repo.version %>\n" +
+                " * <%= repo.name %> v<%= repo.version %>\n" +
                 " * <%= pkg.homepage %>\n" +
                 " *\n" +
-                " * Copyright 2013, <%= grunt.template.today('yyyy') %> Ourairyu, http://ourai.ws/\n" +
+                " * Copyright 2015, <%= grunt.template.today('yyyy') %> Ourairyu, http://ourai.ws/\n" +
                 " *\n" +
                 " * Date: <%= grunt.template.today('yyyy-mm-dd') %>\n" +
                 " */\n"
         sourceMap: true
       build_normal:
-        src: "<%= meta.dest_script %>/<%= pkg.name %>.js"
-        dest: "<%= meta.dest_script %>/<%= pkg.name %>.min.js"
+        src: "<%= meta.dest_script %>/<%= pkg.name.toLowerCase() %>.js"
+        dest: "<%= meta.dest_script %>/<%= pkg.name.toLowerCase() %>.min.js"
     copy:
       test:
         expand: true
@@ -97,6 +97,6 @@ module.exports = ( grunt ) ->
   # Default task
   grunt.registerTask "default", [
       "compile_coffee"
-      "clean"
+      # "clean"
       "test"
     ]

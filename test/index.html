@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <title>Test</title>
     <script src="./jquery.min.js"></script>
-    <script src="./javascripts/validator.js"></script>
+    <script src="./javascripts/html5form.js"></script>
     <script>
       $(document).ready(function() {
+        H5F.init($("form"));
+        H5F.errors({
+          COULD_NOT_BE_EMPTY: "不能为空",
+          UNKNOWN_INPUT_TYPE: "未知类型",
+          INVALID_VALUE: "无效值",
+          NOT_A_NUMBER: "不是数字",
+          UNDERFLOW: "下溢",
+          OVERFLOW: "上溢"
+        });
+
         $("[name]").on("validate:fail", function( e, v ) {
           console.log(v);
         });
