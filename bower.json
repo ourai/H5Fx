@@ -1,5 +1,5 @@
 {
-  "name": "HTML5Form",
+  "name": "html5form",
   "version": "0.0.1",
   "main": [
     "dest/javascripts/html5form.min.js",

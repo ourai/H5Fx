@@ -20,7 +20,7 @@ module.exports = ( grunt ) ->
       modules: "src/javascripts/modules"
       mod_cmpt: "<%= meta.modules %>/Component"
 
-      temp: ".<%= pkg.name.toLowerCase() %>-cache"
+      temp: ".<%= pkg.name %>-cache"
       image: "src/images"
 
       dest: "dest"
@@ -30,7 +30,7 @@ module.exports = ( grunt ) ->
     concat:
       coffee:
         files:
-          "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.coffee": [
+          "<%= meta.temp %>/<%= pkg.name %>.coffee": [
               "src/intro.coffee"
               "src/field.coffee"
               "src/form.coffee"
@@ -43,17 +43,17 @@ module.exports = ( grunt ) ->
               return info[key.toLowerCase()]
         src: [
             "build/intro.js"
-            "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.js"
+            "<%= meta.temp %>/<%= pkg.name %>.js"
             "build/outro.js"
           ]
-        dest: "<%= meta.dest_script %>/<%= pkg.name.toLowerCase() %>.js"
+        dest: "<%= meta.dest_script %>/<%= pkg.name %>.js"
     coffee:
       options:
         bare: true
         separator: "\x20"
       build_normal:
-        src: "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.coffee"
-        dest: "<%= meta.temp %>/<%= pkg.name.toLowerCase() %>.js"
+        src: "<%= meta.temp %>/<%= pkg.name %>.coffee"
+        dest: "<%= meta.temp %>/<%= pkg.name %>.js"
       test:
         src: "<%= meta.tests %>/test.coffee"
         dest: "<%= meta.tests %>/test.js"
@@ -69,8 +69,8 @@ module.exports = ( grunt ) ->
                 " */\n"
         sourceMap: true
       build_normal:
-        src: "<%= meta.dest_script %>/<%= pkg.name.toLowerCase() %>.js"
-        dest: "<%= meta.dest_script %>/<%= pkg.name.toLowerCase() %>.min.js"
+        src: "<%= meta.dest_script %>/<%= pkg.name %>.js"
+        dest: "<%= meta.dest_script %>/<%= pkg.name %>.min.js"
     copy:
       test:
         expand: true

@@ -1,8 +1,8 @@
 {
-  "name": "HTML5Form",
+  "name": "html5form",
   "version": "0.0.1",
   "description": "A form validation plugin based on HTML5",
-  "homepage": "https://github.com/ourai/HTML5Form",
+  "homepage": "https://github.com/ourai/html5form",
   "keywords": [
     "form",
     "validation",
@@ -13,9 +13,9 @@
   "author": "Ourai Lin <ourairyu@hotmail.com> (http://ourai.ws/)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ourai/HTML5Form.git"
+    "url": "https://github.com/ourai/html5form.git"
   },
-  "bugs": "https://github.com/ourai/HTML5Form/issues",
+  "bugs": "https://github.com/ourai/html5form/issues",
   "engines": "node >= 0.8.0",
   "devDependencies": {
     "grunt": "~0.4.1",
