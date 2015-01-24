@@ -123,7 +123,7 @@ Field = (function() {
           this.message = ERROR.UNKNOWN_INPUT_TYPE;
       }
     }
-    $(ele).trigger("validate:" + (this.valid ? "success" : "fail"), this);
+    $(ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
     return this.valid;
   };
 
@@ -153,6 +153,9 @@ Form = {
   },
   errors: function(msgs) {
     return $.extend(ERROR, msgs);
+  },
+  rules: function(rules) {
+    return $.extend(RULE, rules);
   }
 };
 
