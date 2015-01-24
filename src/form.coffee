@@ -13,7 +13,7 @@ Form =
         if not form.attr("data-novalidate")?
           fields = []
 
-          $("[name]:not(select, [type='checkbox'], [type='radio'])", form).each ->
+          $("[name]:not(select, [type='checkbox'], [type='radio'], [type='hidden'])", form).each ->
             fields.push new Field @
 
           form.data "H5F-fields", fields

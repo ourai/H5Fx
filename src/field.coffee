@@ -55,8 +55,7 @@ class Field
     if @required and $.trim(val) is ""
       @valid = false
       @message = ERROR.COULD_NOT_BE_EMPTY
-    # checkbox 和 radio 不需要验证
-    else if $.inArray(@type, ["checkbox", "radio", "hidden"]) is -1
+    else
       switch @type
         when "text", "password", "textarea"
           if @pattern? and @pattern isnt ""

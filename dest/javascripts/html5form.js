@@ -91,7 +91,7 @@ Field = (function() {
     if (this.required && $.trim(val) === "") {
       this.valid = false;
       this.message = ERROR.COULD_NOT_BE_EMPTY;
-    } else if ($.inArray(this.type, ["checkbox", "radio", "hidden"]) === -1) {
+    } else {
       switch (this.type) {
         case "text":
         case "password":
@@ -142,7 +142,7 @@ Form = {
         form.attr("novalidate", true);
         if (form.attr("data-novalidate") == null) {
           fields = [];
-          $("[name]:not(select, [type='checkbox'], [type='radio'])", form).each(function() {
+          $("[name]:not(select, [type='checkbox'], [type='radio'], [type='hidden'])", form).each(function() {
             return fields.push(new Field(this));
           });
           form.data("H5F-fields", fields);
