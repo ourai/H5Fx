@@ -49,7 +49,7 @@ class Field
       @required = $("[name='#{@name}'][required]", $(@form)).size() > 0
     else
       @element = ele.get 0
-      @required = ele.prop "required"
+      @required = @element.hasAttribute "required"
       @pattern = ele.attr "pattern"
 
     reset.call @

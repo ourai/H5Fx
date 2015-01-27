@@ -1,3 +1,19 @@
+bindEvent = ( form ) ->
+  form.on "submit", ( e ) ->
+    passed = true
+
+    $.each $(@).data("H5F-fields") ? [], ->
+      @reset()
+
+      if not @validate()
+        passed = false
+
+      return true
+
+    if not passed
+      e.preventDefault()
+      e.stopImmediatePropagation()
+
 Form =
   version: LIB_CONFIG.version
 
@@ -21,12 +37,12 @@ Form =
             if ipt.prop("type") in ["radio", "checkbox"]
               if not groupName[name]?
                 groupName[name] = true
-                
+
                 fields.push new Field @
             else
               fields.push new Field @
 
-          form.data "H5F-fields", fields
+          bindEvent form.data "H5F-fields", fields
 
         form.data flag, true
 
@@ -37,16 +53,3 @@ Form =
   # 自定义验证规则
   rules: ( rules ) ->
     return $.extend RULE, rules
-
-$(document).on "submit", "form:not([data-novalidate])", ->
-  passed = true
-
-  $.each $(@).data("H5F-fields") ? [], ->
-    @reset()
-
-    if not @validate()
-      passed = false
-
-    return true
-
-  return passed

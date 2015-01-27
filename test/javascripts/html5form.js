@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, RULE, elementType, getExtremum, isGroupedElement, reset, toNum;
+var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, elementType, getExtremum, isGroupedElement, reset, toNum;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -82,7 +82,7 @@ Field = (function() {
       this.required = $("[name='" + this.name + "'][required]", $(this.form)).size() > 0;
     } else {
       this.element = ele.get(0);
-      this.required = ele.prop("required");
+      this.required = this.element.hasAttribute("required");
       this.pattern = ele.attr("pattern");
     }
     reset.call(this);
@@ -145,6 +145,24 @@ Field = (function() {
 
 })();
 
+bindEvent = function(form) {
+  return form.on("submit", function(e) {
+    var passed, _ref;
+    passed = true;
+    $.each((_ref = $(this).data("H5F-fields")) != null ? _ref : [], function() {
+      this.reset();
+      if (!this.validate()) {
+        passed = false;
+      }
+      return true;
+    });
+    if (!passed) {
+      e.preventDefault();
+      return e.stopImmediatePropagation();
+    }
+  });
+};
+
 Form = {
   version: LIB_CONFIG.version,
   init: function(forms) {
@@ -170,7 +188,7 @@ Form = {
               return fields.push(new Field(this));
             }
           });
-          form.data("H5F-fields", fields);
+          bindEvent(form.data("H5F-fields", fields));
         }
         return form.data(flag, true);
       }
@@ -183,19 +201,6 @@ Form = {
     return $.extend(RULE, rules);
   }
 };
-
-$(document).on("submit", "form:not([data-novalidate])", function() {
-  var passed, _ref;
-  passed = true;
-  $.each((_ref = $(this).data("H5F-fields")) != null ? _ref : [], function() {
-    this.reset();
-    if (!this.validate()) {
-      passed = false;
-    }
-    return true;
-  });
-  return passed;
-});
 
 window[LIB_CONFIG.name] = Form;
 
