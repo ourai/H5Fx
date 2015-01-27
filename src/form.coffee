@@ -12,9 +12,19 @@ Form =
 
         if not form.attr("data-novalidate")?
           fields = []
+          groupName = {}
 
-          $("[name]:not(select, [type='checkbox'], [type='radio'], [type='hidden'])", form).each ->
-            fields.push new Field @
+          $("[name]:not(select, [type='hidden'])", form).each ->
+            ipt = $ @
+            name = ipt.prop "name"
+
+            if ipt.prop("type") in ["radio", "checkbox"]
+              if not groupName[name]?
+                groupName[name] = true
+                
+                fields.push new Field @
+            else
+              fields.push new Field @
 
           form.data "H5F-fields", fields
 

@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, RULE, elementType, getExtremum, reset, toNum;
+var ERROR, Field, Form, LIB_CONFIG, RULE, elementType, getExtremum, isGroupedElement, reset, toNum;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -48,6 +48,10 @@ elementType = function(ele) {
   return type;
 };
 
+isGroupedElement = function(ele) {
+  return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) !== -1;
+};
+
 reset = function() {
   this.valid = true;
   return this.message = "";
@@ -70,16 +74,26 @@ getExtremum = function(ele, type) {
 Field = (function() {
   function Field(ele) {
     ele = $(ele);
-    this.element = ele.get(0);
-    this.form = ele.closest("form").get(0);
-    this.pattern = ele.attr("pattern");
     this.type = elementType(ele);
-    this.required = ele.prop("required");
+    this.name = ele.prop("name");
+    this.form = ele.closest("form").get(0);
+    if (isGroupedElement(ele)) {
+      this.element = $.makeArray($("[name='" + this.name + "']", $(this.form)));
+      this.required = $("[name='" + this.name + "'][required]", $(this.form)).size() > 0;
+    } else {
+      this.element = ele.get(0);
+      this.required = ele.prop("required");
+      this.pattern = ele.attr("pattern");
+    }
     reset.call(this);
   }
 
   Field.prototype.value = function() {
-    return $(this.element).val();
+    if (isGroupedElement(this.element)) {
+      return $("[name='" + this.name + "']:checked", $(this.form)).val();
+    } else {
+      return $(this.element).val();
+    }
   };
 
   Field.prototype.reset = reset;
@@ -123,7 +137,7 @@ Field = (function() {
           this.message = ERROR.UNKNOWN_INPUT_TYPE;
       }
     }
-    $(ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
+    $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
     return this.valid;
   };
 
@@ -135,15 +149,26 @@ Form = {
   version: LIB_CONFIG.version,
   init: function(forms) {
     return $(forms).each(function() {
-      var fields, flag, form;
+      var fields, flag, form, groupName;
       form = $(this);
       flag = "H5F-inited";
       if (form.data(flag) !== true) {
         form.attr("novalidate", true);
         if (form.attr("data-novalidate") == null) {
           fields = [];
-          $("[name]:not(select, [type='checkbox'], [type='radio'], [type='hidden'])", form).each(function() {
-            return fields.push(new Field(this));
+          groupName = {};
+          $("[name]:not(select, [type='hidden'])", form).each(function() {
+            var ipt, name, _ref;
+            ipt = $(this);
+            name = ipt.prop("name");
+            if ((_ref = ipt.prop("type")) === "radio" || _ref === "checkbox") {
+              if (groupName[name] == null) {
+                groupName[name] = true;
+                return fields.push(new Field(this));
+              }
+            } else {
+              return fields.push(new Field(this));
+            }
           });
           form.data("H5F-fields", fields);
         }

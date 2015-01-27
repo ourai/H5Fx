@@ -9,6 +9,7 @@ ERROR =
   UNDERFLOW: "UNDERFLOW"
   OVERFLOW: "OVERFLOW"
 
+# 表单元素类型
 elementType = ( ele ) ->
   switch ele.get(0).tagName.toLowerCase()
     when "textarea" then type = "textarea"
@@ -16,6 +17,11 @@ elementType = ( ele ) ->
 
   return type
 
+# 是否为成组的表单元素
+isGroupedElement = ( ele ) ->
+  return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) isnt -1
+
+# 重置验证结果相关属性
 reset = ->
   @valid = true
   @message = ""
@@ -34,17 +40,22 @@ class Field
   constructor: ( ele ) ->
     ele = $ ele
 
-    @element = ele.get 0
+    @type = elementType ele
+    @name = ele.prop "name"
     @form = ele.closest("form").get 0
 
-    @pattern = ele.attr "pattern"
-    @type = elementType ele
-    @required = ele.prop "required"
+    if isGroupedElement(ele)
+      @element = $.makeArray $("[name='#{@name}']", $(@form))
+      @required = $("[name='#{@name}'][required]", $(@form)).size() > 0
+    else
+      @element = ele.get 0
+      @required = ele.prop "required"
+      @pattern = ele.attr "pattern"
 
     reset.call @
 
   value: ->
-    return $(@element).val()
+    return if isGroupedElement(@element) then $("[name='#{@name}']:checked", $(@form)).val() else $(@element).val()
 
   reset: reset
 
@@ -81,6 +92,6 @@ class Field
         else
           @message = ERROR.UNKNOWN_INPUT_TYPE
 
-    $(ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
+    $(if $.isArray(ele) then ele[0] else ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
 
     return @valid
