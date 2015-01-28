@@ -1,55 +1,85 @@
-bindEvent = ( form ) ->
+# 对字段进行验证
+validateField = ( form, field ) ->
+  field.reset()
+  field.validated = true
+  
+  if field.validate()
+    form.invalidCount = --form.invalidCount if field.counted is true
+    field.counted = false
+  else
+    form.invalidCount = ++form.invalidCount if field.counted isnt true
+    field.counted = true
+
+  return field
+
+# 绑定事件
+bindEvent = ( form, inst, immediate ) ->
+  if immediate is true
+    $("[name]:checkbox, [name]:radio", form).on "change", ->
+      validateField inst, inst.fields[$(@).prop("name")]
+
+    $("[name]:not(:checkbox, :radio, [type='hidden'])", form).on "blur", ->
+      validateField inst, inst.fields[$(@).prop("name")]
+
   form.on "submit", ( e ) ->
-    inst = $(@).data "H5F"
+    # 在提交时对没有验证过的表单元素进行验证
+    $.each inst.sequence, ( idx, name ) ->
+      field = inst.fields[name]
+      field.validated = false if not immediate
+      validateField(inst, field) if field.validated is false
 
-    if inst?
-      submittable = true
+      return true
 
-      $.each inst.fields, ->
-        @reset()
+    # 有无效字段时阻止提交
+    if inst.invalidCount > 0
+      e.preventDefault()
+      e.stopImmediatePropagation()
 
-        submittable = false if not @validate()
-
-        return true
-
-      if not submittable
-        e.preventDefault()
-        e.stopImmediatePropagation()
+# 默认设置
+defaultSettings =
+  # 立即验证
+  immediate: false
 
 class Form
   constructor: ( form ) ->
     inst = @
-    initedFields = {}
+    @invalidCount = 0
 
     $("[name]:not(select, [type='hidden'])", $(form)).each ->
       ipt = $ @
       name = ipt.prop "name"
 
-      if not initedFields[name]?
-        inst.addField new Field @
-        initedFields[name] = true
+      inst.addField new Field @
 
   addField: ( field ) ->
-    @fields = [] if not @fields?
+    @fields = {} if not @fields?
+    @sequence = [] if not @sequence?
 
-    @fields.push field
+    name = field.name
+
+    if not @fields[name]?
+      field.validated = false
+
+      @fields[name] = field
+      @sequence.push name
 
     return field
 
   @version = LIB_CONFIG.version
 
   # 初始化
-  @init = ( forms ) ->
+  @init = ( forms, settings ) ->
     F = @
 
     $(forms).each ->
       form = $(@)
       flag = "H5F-inited"
+      settings = $.extend {}, defaultSettings, settings, {immediate: form.attr("data-h5f-immediate") is "true"}
 
       if form.data(flag) isnt true
         form.data flag, true
         form.attr "novalidate", true
-        bindEvent(form.data("H5F", new F @)) if not form.attr("data-novalidate")?
+        bindEvent(form, new F(@), settings.immediate) if not form.attr("data-h5f-novalidate")?
 
   # 自定义出错信息
   @errors = ( msgs ) ->

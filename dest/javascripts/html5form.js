@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, elementType, getExtremum, hasAttr, isGroupedElement, reset, toNum;
+var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, defaultSettings, elementType, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -157,62 +157,118 @@ Field = (function() {
 
 })();
 
-bindEvent = function(form) {
+validateField = function(form, field) {
+  field.reset();
+  field.validated = true;
+  if (field.validate()) {
+    if (field.counted === true) {
+      form.invalidCount = --form.invalidCount;
+    }
+    field.counted = false;
+  } else {
+    if (field.counted !== true) {
+      form.invalidCount = ++form.invalidCount;
+    }
+    field.counted = true;
+  }
+  return field;
+};
+
+bindEvent = function(form, inst, immediate) {
+  if (immediate === true) {
+    $("[name]:checkbox, [name]:radio", form).on("change", function() {
+      return validateField(inst, inst.fields[$(this).prop("name")]);
+    });
+    $("[name]:not(:checkbox, :radio, [type='hidden'])", form).on("blur", function() {
+      return validateField(inst, inst.fields[$(this).prop("name")]);
+    });
+  }
   return form.on("submit", function(e) {
-    var passed, _ref;
-    passed = true;
-    $.each((_ref = $(this).data("H5F-fields")) != null ? _ref : [], function() {
-      this.reset();
-      if (!this.validate()) {
-        passed = false;
+    $.each(inst.sequence, function(idx, name) {
+      var field;
+      field = inst.fields[name];
+      if (!immediate) {
+        field.validated = false;
+      }
+      if (field.validated === false) {
+        validateField(inst, field);
       }
       return true;
     });
-    if (!passed) {
+    if (inst.invalidCount > 0) {
       e.preventDefault();
       return e.stopImmediatePropagation();
     }
   });
 };
 
-Form = {
-  version: LIB_CONFIG.version,
-  init: function(forms) {
+defaultSettings = {
+  immediate: false
+};
+
+Form = (function() {
+  function Form(form) {
+    var inst;
+    inst = this;
+    this.invalidCount = 0;
+    $("[name]:not(select, [type='hidden'])", $(form)).each(function() {
+      var ipt, name;
+      ipt = $(this);
+      name = ipt.prop("name");
+      return inst.addField(new Field(this));
+    });
+  }
+
+  Form.prototype.addField = function(field) {
+    var name;
+    if (this.fields == null) {
+      this.fields = {};
+    }
+    if (this.sequence == null) {
+      this.sequence = [];
+    }
+    name = field.name;
+    if (this.fields[name] == null) {
+      field.validated = false;
+      this.fields[name] = field;
+      this.sequence.push(name);
+    }
+    return field;
+  };
+
+  Form.version = LIB_CONFIG.version;
+
+  Form.init = function(forms, settings) {
+    var F;
+    F = this;
     return $(forms).each(function() {
-      var fields, flag, form, groupName;
+      var flag, form;
       form = $(this);
       flag = "H5F-inited";
+      settings = $.extend({}, defaultSettings, settings, {
+        immediate: form.attr("data-h5f-immediate") === "true"
+      });
       if (form.data(flag) !== true) {
+        form.data(flag, true);
         form.attr("novalidate", true);
-        if (form.attr("data-novalidate") == null) {
-          fields = [];
-          groupName = {};
-          $("[name]:not(select, [type='hidden'])", form).each(function() {
-            var ipt, name, _ref;
-            ipt = $(this);
-            name = ipt.prop("name");
-            if ((_ref = ipt.prop("type")) === "radio" || _ref === "checkbox") {
-              if (groupName[name] == null) {
-                groupName[name] = true;
-                return fields.push(new Field(this));
-              }
-            } else {
-              return fields.push(new Field(this));
-            }
-          });
-          bindEvent(form.data("H5F-fields", fields));
+        if (form.attr("data-h5f-novalidate") == null) {
+          return bindEvent(form, new F(this), settings.immediate);
         }
-        return form.data(flag, true);
       }
     });
-  },
-  errors: function(msgs) {
+  };
+
+  Form.errors = function(msgs) {
     return $.extend(ERROR, msgs);
-  },
-  rules: function(rules) {
+  };
+
+  Form.rules = function(rules) {
     return $.extend(RULE, rules);
-  }
-};
+  };
+
+  return Form;
+
+})();
 
 window[LIB_CONFIG.name] = Form;
 
