@@ -80,6 +80,8 @@ module.exports = ( grunt ) ->
     clean:
       compiled:
         src: ["<%= meta.temp %>/**"]
+      test:
+        src: ["<%= meta.tests %>/**/*.coffee"]
 
   grunt.loadNpmTasks task for task in npmTasks
 
@@ -91,12 +93,11 @@ module.exports = ( grunt ) ->
       "uglify"
     ]
   grunt.registerTask "test", [
-      # "coffee:test"
       "copy:test"
+      "coffee:test"
     ]
   # Default task
   grunt.registerTask "default", [
       "compile_coffee"
-      # "clean"
       "test"
     ]

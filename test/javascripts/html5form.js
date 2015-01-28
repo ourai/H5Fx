@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, elementType, getExtremum, isGroupedElement, reset, toNum;
+var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, elementType, getExtremum, hasAttr, isGroupedElement, reset, toNum;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -30,6 +30,8 @@ RULE = {
 ERROR = {
   COULD_NOT_BE_EMPTY: "COULD_NOT_BE_EMPTY",
   UNKNOWN_INPUT_TYPE: "UNKNOWN_INPUT_TYPE",
+  LENGTH_SMALLER_THEN_MINIMUM: "LENGTH_SMALLER_THEN_MINIMUM",
+  LENGTH_BIGGER_THEN_MAXIMUM: "LENGTH_BIGGER_THEN_MAXIMUM",
   INVALID_VALUE: "INVALID_VALUE",
   NOT_A_NUMBER: "NOT_A_NUMBER",
   UNDERFLOW: "UNDERFLOW",
@@ -50,6 +52,10 @@ elementType = function(ele) {
 
 isGroupedElement = function(ele) {
   return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) !== -1;
+};
+
+hasAttr = function(ele, attr) {
+  return ele.hasAttribute(attr);
 };
 
 reset = function() {
@@ -82,7 +88,7 @@ Field = (function() {
       this.required = $("[name='" + this.name + "'][required]", $(this.form)).size() > 0;
     } else {
       this.element = ele.get(0);
-      this.required = this.element.hasAttribute("required");
+      this.required = hasAttr(this.element, "required");
       this.pattern = ele.attr("pattern");
     }
     reset.call(this);
@@ -110,7 +116,13 @@ Field = (function() {
         case "text":
         case "password":
         case "textarea":
-          if ((this.pattern != null) && this.pattern !== "") {
+          if (hasAttr(ele, "minlength") && val.length < $(ele).prop("minLength")) {
+            this.valid = false;
+            this.message = ERROR.LENGTH_SMALLER_THEN_MINIMUM;
+          } else if (hasAttr(ele, "maxlength") && val.length > $(ele).prop("maxLength")) {
+            this.valid = false;
+            this.message = ERROR.LENGTH_BIGGER_THEN_MAXIMUM;
+          } else if ((this.pattern != null) && this.pattern !== "") {
             this.valid = (new RegExp("^" + this.pattern + "$")).test(val);
             if (!this.valid) {
               this.message = ERROR.INVALID_VALUE;

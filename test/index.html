@@ -6,69 +6,59 @@
     <link rel="stylesheet" href="./bootstrap/css/bootstrap.css">
     <script src="./jquery.min.js"></script>
     <script src="./javascripts/html5form.js"></script>
-    <script>
-      $(document).ready(function() {
-        H5F.init($("form"));
-        H5F.errors({
-          COULD_NOT_BE_EMPTY: "不能为空",
-          UNKNOWN_INPUT_TYPE: "未知类型",
-          INVALID_VALUE: "无效值",
-          NOT_A_NUMBER: "不是数字",
-          UNDERFLOW: "下溢",
-          OVERFLOW: "上溢"
-        });
+    <script src="./test.js"></script>
+    <style>
+      .example {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px 0;
+      }
 
-        $("[name]").on({
-          "H5F:valid": function( e, field ) {
-            $(field.element)
-              .parent(".form-group")
-              .removeClass("has-error")
-              .addClass("has-success");
-          },
-          "H5F:invalid": function( e, field ) {
-            $(field.element)
-              .parent(".form-group")
-              .removeClass("has-success")
-              .addClass("has-error");
-          }
-        });
-      });
-    </script>
+      .example form {
+        margin-top: 50px;
+      }
+
+      .example form:first-child {
+        margin-top: 0;
+      }
+    </style>
   </head>
   <body>
-    <form id="form_1" action="/" method="get" data-novalidate="true">
-      <input class="btn btn-primary btn-block" type="submit">
-    </form>
-    <form id="form_2" action="/" method="get">
-      <div class="form-group">
-        <label class="control-label" for="form_2_1">文本</label>
-        <input id="form_2_1" class="form-control" type="text" name="form_2_1" value="" pattern=".*0" required="required" minlength="2" maxlength="4">
-      </div>
-      <div class="form-group">
-        <label class="control-label" for="form_2_2">数字</label>
-        <input id="form_2_2" class="form-control" type="number" name="form_2_2" value="" required="required" min="5" max="10" pattern=".*0">
-      </div>
-      <div class="form-group">
-        <label class="control-label" for="radio_1_1">单选框1</label>
-        <input type="radio" id="radio_1_1" name="radio_1" value="1">
-        <label class="control-label" for="radio_1_2">单选框2</label>
-        <input type="radio" id="radio_1_2" name="radio_1" required="required" value="2">
-        <label class="control-label" for="radio_1_3">单选框3</label>
-        <input type="radio" id="radio_1_3" name="radio_1" value="3">
-        <label class="control-label" for="radio_1_4">单选框4</label>
-        <input type="radio" id="radio_1_4" name="radio_1" value="4">
-      </div>
-      <div class="form-group">
-        <label class="control-label" for="checkbox_1_1">多选框1</label>
-        <input type="checkbox" id="checkbox_1_1" name="checkbox_1" value="1">
-        <label class="control-label" for="checkbox_1_2">多选框2</label>
-        <input type="checkbox" id="checkbox_1_2" name="checkbox_1" required="required" value="2">
-        <label class="control-label" for="checkbox_1_3">多选框3</label>
-        <input type="checkbox" id="checkbox_1_3" name="checkbox_1" value="3">
-        <label class="control-label" for="checkbox_1_4">多选框4</label>
-        <input type="checkbox" id="checkbox_1_4" name="checkbox_1" value="4">
-      </div>
-      <input class="btn btn-primary btn-block" type="submit">
-    </form>
-  </body>
+    <div class="example">
+      <form id="form_1" action="/" method="get" data-novalidate="true">
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
+      <form id="form_2" action="/" method="get">
+        <div class="form-group">
+          <label class="control-label" for="form_2_1">文本</label>
+          <input id="form_2_1" class="form-control" type="text" name="form_2_1" value="" pattern=".*0" required="required" minlength="2" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_2_2">数字</label>
+          <input id="form_2_2" class="form-control" type="number" name="form_2_2" value="" required="required" min="5" max="10" pattern=".*0">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="radio_1_1">单选框1</label>
+          <input type="radio" id="radio_1_1" name="radio_1" value="1">
+          <label class="control-label" for="radio_1_2">单选框2</label>
+          <input type="radio" id="radio_1_2" name="radio_1" required="required" value="2">
+          <label class="control-label" for="radio_1_3">单选框3</label>
+          <input type="radio" id="radio_1_3" name="radio_1" value="3">
+          <label class="control-label" for="radio_1_4">单选框4</label>
+          <input type="radio" id="radio_1_4" name="radio_1" value="4">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="checkbox_1_1">多选框1</label>
+          <input type="checkbox" id="checkbox_1_1" name="checkbox_1" value="1">
+          <label class="control-label" for="checkbox_1_2">多选框2</label>
+          <input type="checkbox" id="checkbox_1_2" name="checkbox_1" required="required" value="2">
+          <label class="control-label" for="checkbox_1_3">多选框3</label>
+          <input type="checkbox" id="checkbox_1_3" name="checkbox_1" value="3">
+          <label class="control-label" for="checkbox_1_4">多选框4</label>
+          <input type="checkbox" id="checkbox_1_4" name="checkbox_1" value="4">
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
+    </body>
+    </div>
 </html>
