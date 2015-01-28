@@ -4,6 +4,8 @@ RULE =
 ERROR =
   COULD_NOT_BE_EMPTY: "COULD_NOT_BE_EMPTY"
   UNKNOWN_INPUT_TYPE: "UNKNOWN_INPUT_TYPE"
+  LENGTH_SMALLER_THEN_MINIMUM: "LENGTH_SMALLER_THEN_MINIMUM"
+  LENGTH_BIGGER_THEN_MAXIMUM: "LENGTH_BIGGER_THEN_MAXIMUM"
   INVALID_VALUE: "INVALID_VALUE"
   NOT_A_NUMBER: "NOT_A_NUMBER"
   UNDERFLOW: "UNDERFLOW"
@@ -20,6 +22,10 @@ elementType = ( ele ) ->
 # 是否为成组的表单元素
 isGroupedElement = ( ele ) ->
   return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) isnt -1
+
+# 是否拥有某个 HTML 属性
+hasAttr = ( ele, attr ) ->
+  return ele.hasAttribute attr
 
 # 重置验证结果相关属性
 reset = ->
@@ -49,7 +55,7 @@ class Field
       @required = $("[name='#{@name}'][required]", $(@form)).size() > 0
     else
       @element = ele.get 0
-      @required = @element.hasAttribute "required"
+      @required = hasAttr @element, "required"
       @pattern = ele.attr "pattern"
 
     reset.call @
@@ -69,7 +75,16 @@ class Field
     else
       switch @type
         when "text", "password", "textarea"
-          if @pattern? and @pattern isnt ""
+          # 字符串最小长度
+          if hasAttr(ele, "minlength") and val.length < $(ele).prop("minLength")
+            @valid = false
+            @message = ERROR.LENGTH_SMALLER_THEN_MINIMUM
+          # 字符串最大长度
+          else if hasAttr(ele, "maxlength") and val.length > $(ele).prop("maxLength")
+            @valid = false
+            @message = ERROR.LENGTH_BIGGER_THEN_MAXIMUM
+          # 指定的字符串模式
+          else if @pattern? and @pattern isnt ""
             @valid = (new RegExp "^#{@pattern}$").test val
             @message = ERROR.INVALID_VALUE if not @valid
         when "number"
