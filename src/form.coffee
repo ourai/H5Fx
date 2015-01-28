@@ -1,55 +1,60 @@
 bindEvent = ( form ) ->
   form.on "submit", ( e ) ->
-    passed = true
+    inst = $(@).data "H5F"
 
-    $.each $(@).data("H5F-fields") ? [], ->
-      @reset()
+    if inst?
+      submittable = true
 
-      if not @validate()
-        passed = false
+      $.each inst.fields, ->
+        @reset()
 
-      return true
+        submittable = false if not @validate()
 
-    if not passed
-      e.preventDefault()
-      e.stopImmediatePropagation()
+        return true
 
-Form =
-  version: LIB_CONFIG.version
+      if not submittable
+        e.preventDefault()
+        e.stopImmediatePropagation()
+
+class Form
+  constructor: ( form ) ->
+    inst = @
+    initedFields = {}
+
+    $("[name]:not(select, [type='hidden'])", $(form)).each ->
+      ipt = $ @
+      name = ipt.prop "name"
+
+      if not initedFields[name]?
+        inst.addField new Field @
+        initedFields[name] = true
+
+  addField: ( field ) ->
+    @fields = [] if not @fields?
+
+    @fields.push field
+
+    return field
+
+  @version = LIB_CONFIG.version
 
   # 初始化
-  init: ( forms ) ->
+  @init = ( forms ) ->
+    F = @
+
     $(forms).each ->
       form = $(@)
       flag = "H5F-inited"
 
       if form.data(flag) isnt true
-        form.attr "novalidate", true
-
-        if not form.attr("data-novalidate")?
-          fields = []
-          groupName = {}
-
-          $("[name]:not(select, [type='hidden'])", form).each ->
-            ipt = $ @
-            name = ipt.prop "name"
-
-            if ipt.prop("type") in ["radio", "checkbox"]
-              if not groupName[name]?
-                groupName[name] = true
-
-                fields.push new Field @
-            else
-              fields.push new Field @
-
-          bindEvent form.data "H5F-fields", fields
-
         form.data flag, true
+        form.attr "novalidate", true
+        bindEvent(form.data("H5F", new F @)) if not form.attr("data-novalidate")?
 
   # 自定义出错信息
-  errors: ( msgs ) ->
+  @errors = ( msgs ) ->
     return $.extend ERROR, msgs
 
   # 自定义验证规则
-  rules: ( rules ) ->
+  @rules = ( rules ) ->
     return $.extend RULE, rules
