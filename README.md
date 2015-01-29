@@ -15,9 +15,9 @@
 * ~~`url`~~
 * `email`
 * `password`
+* `number`
 * `checkbox`
 * `radio`
-* `number`
 
 **本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>`。
 

@@ -1,9 +1,7 @@
 {
   "name": "html5form",
   "version": "0.1.0",
-  "main": [
-    "dest/javascripts/html5form.min.js",
-    "dest/stylesheets/html5form.min.css"],
+  "main": ["dest/html5form.min.js"],
   "license": "MIT",
   "ignore": ["**/*", "!dest/**/*"],
   "dependencies": {
