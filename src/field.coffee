@@ -1,3 +1,5 @@
+PATTERN_KEY = /^\s*\{\{\s*([A-Z_]+)\s*\}\}\s*$/
+
 RULE =
   ABSOLUTE_URL: /^.*$/
   # from https://html.spec.whatwg.org/multipage/forms.html#e-mail-state-(type=email)
@@ -101,7 +103,7 @@ class Field
 
             # 自定义
             if @valid and @pattern? and @pattern isnt ""
-              @valid = (new RegExp "^#{@pattern}$").test val
+              @valid = (RULE[@pattern.match(PATTERN_KEY)?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
               @message = ERROR.INVALID_VALUE if not @valid
         when "number"
           @valid = RULE.NUMBER.test val

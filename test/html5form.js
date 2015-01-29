@@ -16,14 +16,18 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, defaultSettings, elementType, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY, RULE, bindEvent, defaultSettings, elementType, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
   version: "0.1.0"
 };
 
+PATTERN_KEY = /^\s*\{\{\s*([A-Z_]+)\s*\}\}\s*$/;
+
 RULE = {
+  ABSOLUTE_URL: /^.*$/,
+  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
   NUMBER: /^\d+(\.0+)?$/
 };
 
@@ -33,6 +37,8 @@ ERROR = {
   LENGTH_SMALLER_THEN_MINIMUM: "LENGTH_SMALLER_THEN_MINIMUM",
   LENGTH_BIGGER_THEN_MAXIMUM: "LENGTH_BIGGER_THEN_MAXIMUM",
   INVALID_VALUE: "INVALID_VALUE",
+  NOT_AN_ABSOLUTE_URL: "NOT_AN_ABSOLUTE_URL",
+  NOT_AN_EMAIL: "NOT_AN_EMAIL",
   NOT_A_NUMBER: "NOT_A_NUMBER",
   UNDERFLOW: "UNDERFLOW",
   OVERFLOW: "OVERFLOW"
@@ -105,7 +111,7 @@ Field = (function() {
   Field.prototype.reset = reset;
 
   Field.prototype.validate = function() {
-    var ele, maxVal, minVal, val;
+    var ele, maxVal, minVal, val, _ref, _ref1, _ref2;
     ele = this.element;
     val = this.value();
     if (this.required && $.trim(val) === "") {
@@ -114,6 +120,10 @@ Field = (function() {
     } else {
       switch (this.type) {
         case "text":
+        case "search":
+        case "tel":
+        case "url":
+        case "email":
         case "password":
         case "textarea":
           if (hasAttr(ele, "minlength") && val.length < $(ele).prop("minLength")) {
@@ -122,10 +132,23 @@ Field = (function() {
           } else if (hasAttr(ele, "maxlength") && val.length > $(ele).prop("maxLength")) {
             this.valid = false;
             this.message = ERROR.LENGTH_BIGGER_THEN_MAXIMUM;
-          } else if ((this.pattern != null) && this.pattern !== "") {
-            this.valid = (new RegExp("^" + this.pattern + "$")).test(val);
-            if (!this.valid) {
-              this.message = ERROR.INVALID_VALUE;
+          } else {
+            if (this.type === "url") {
+              this.valid = RULE.ABSOLUTE_URL.test(val);
+              if (!this.valid) {
+                this.message = ERROR.NOT_AN_ABSOLUTE_URL;
+              }
+            } else if (this.type === "email") {
+              this.valid = RULE.EMAIL.test(val);
+              if (!this.valid) {
+                this.message = ERROR.NOT_AN_EMAIL;
+              }
+            }
+            if (this.valid && (this.pattern != null) && this.pattern !== "") {
+              this.valid = ((_ref = RULE[(_ref1 = (_ref2 = this.pattern.match(PATTERN_KEY)) != null ? _ref2[1] : void 0) != null ? _ref1 : ""]) != null ? _ref : new RegExp("^" + this.pattern + "$")).test(val);
+              if (!this.valid) {
+                this.message = ERROR.INVALID_VALUE;
+              }
             }
           }
           break;

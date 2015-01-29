@@ -46,7 +46,7 @@ module.exports = ( grunt ) ->
             "<%= meta.temp %>/<%= pkg.name %>.js"
             "build/outro.js"
           ]
-        dest: "<%= meta.dest_script %>/<%= pkg.name %>.js"
+        dest: "dest/<%= pkg.name %>.js"
     coffee:
       options:
         bare: true
@@ -69,13 +69,13 @@ module.exports = ( grunt ) ->
                 " */\n"
         sourceMap: true
       build_normal:
-        src: "<%= meta.dest_script %>/<%= pkg.name %>.js"
-        dest: "<%= meta.dest_script %>/<%= pkg.name %>.min.js"
+        src: "dest/<%= pkg.name %>.js"
+        dest: "dest/<%= pkg.name %>.min.js"
     copy:
       test:
         expand: true
         cwd: "<%= meta.dest %>"
-        src: ["images/*", "javascripts/*"]
+        src: ["**/*"]
         dest: "<%= meta.tests %>"
     clean:
       compiled:
