@@ -1,12 +1,27 @@
 # HTML5 Form
 
-这是一个基于 HTML5 Form 规范的表单验证插件，也就是输入字段的值是受 HTML5 规范中定义的属性制约，如：`pattern`、`min`、`max`、`minlength` 等等。
+这是一个基于 [Forms](https://html.spec.whatwg.org/multipage/forms.html#forms) 规范的表单验证插件，即输入字段的值受标准的 HTML5 属性制约。如：
 
-## 依赖
+* `minlength` - 最小长度
+* `pattern` - 字符串的模式
+* `min` - 数字等的最小值
+* `max` - 数字等的最大值
+
+与表单相关的 HTML 标签有很多，但常用的与字段有关的是 `<input>`、`<textarea>` 和 `<select>`、`<option>`。其中 `<input>` 的行为根据 `type` 值的不同而多变，本插件目前仅支持了一部分：
+
+* `text` -
+* `checkbox` -
+* `radio` -
+* `password` -
+* `number` -
+
+**本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>`。
+
+## Dependencies
 
 * [jQuery](http://jquery.com/) 1.8.0+
 
-## 兼容性
+## Browser support
 
 目前只测试了 PC 端的部分浏览器：
 
@@ -15,45 +30,35 @@
 * Mozilla Firefox
 * Safari
 
-## 使用方法
+## Usage
 
 输入字段必须有 `name` 属性，并且必须包在 `<form>` 中。
 
 程序会视拥有相同 `name` 的 `checkbox` 或 `radio` 为一组，只生成一个验证对象，所以每组只需给一个字段添加与验证相关的属性，并且要添加到同一个字段上。
 
-### 基本用法
+### Basic
 
 ```html
-<form id="form" action="/" method="get">
-  <div class="form-group">
-    <label class="control-label" for="form_1">文本</label>
-    <input id="form_1" class="form-control" type="text" name="form_1" value="" pattern=".*0" required="required" minlength="2" maxlength="4">
+<form>
+  <div>
+    <label><input type="text" name="form_1" value="" required="required" minlength="2" maxlength="4" pattern=".*0"> 文本</label>
   </div>
-  <div class="form-group">
-    <label class="control-label" for="form_2">数字</label>
-    <input id="form_2" class="form-control" type="number" name="form_2" value="" required="required" min="5" max="10" pattern=".*0">
+  <div>
+    <label><input type="number" name="form_2" value="" required="required" min="5" max="10"> 数字</label>
   </div>
-  <div class="form-group">
-    <label class="control-label" for="radio_1_1">单选框1</label>
-    <input type="radio" id="radio_1_1" name="radio_1" value="1">
-    <label class="control-label" for="radio_1_2">单选框2</label>
-    <input type="radio" id="radio_1_2" name="radio_1" required="required" value="2">
-    <label class="control-label" for="radio_1_3">单选框3</label>
-    <input type="radio" id="radio_1_3" name="radio_1" value="3">
-    <label class="control-label" for="radio_1_4">单选框4</label>
-    <input type="radio" id="radio_1_4" name="radio_1" value="4">
+  <div>
+    <label><input type="radio" name="radio_1" value="1"> 单选框1</label>
+    <label><input type="radio" name="radio_1" required="required" value="2"> 单选框2</label>
+    <label><input type="radio" name="radio_1" value="3"> 单选框3</label>
+    <label><input type="radio" name="radio_1" value="4"> 单选框4</label>
   </div>
-  <div class="form-group">
-    <label class="control-label" for="checkbox_1_1">多选框1</label>
-    <input type="checkbox" id="checkbox_1_1" name="checkbox_1" value="1">
-    <label class="control-label" for="checkbox_1_2">多选框2</label>
-    <input type="checkbox" id="checkbox_1_2" name="checkbox_1" required="required" value="2">
-    <label class="control-label" for="checkbox_1_3">多选框3</label>
-    <input type="checkbox" id="checkbox_1_3" name="checkbox_1" value="3">
-    <label class="control-label" for="checkbox_1_4">多选框4</label>
-    <input type="checkbox" id="checkbox_1_4" name="checkbox_1" value="4">
+  <div>
+    <label><input type="checkbox" name="checkbox_1" value="1"> 多选框1</label>
+    <label><input type="checkbox" name="checkbox_1" required="required" value="2"> 多选框2</label>
+    <label><input type="checkbox" name="checkbox_1" value="3"> 多选框3</label>
+    <label><input type="checkbox" name="checkbox_1" value="4"> 多选框4</label>
   </div>
-  <input class="btn btn-primary btn-block" type="submit">
+  <input type="submit" value="submit">
 </form>
 ```
 
@@ -61,17 +66,17 @@
 H5F.init($("form"));
 ```
 
-### 输入文本后立即验证
+### 字段的验证时机
 
 程序默认在表单提交时对输入字段进行验证，也可以指定在输入文本后立即对其进行验证。
 
-#### 方式一
+##### 方式一
 
 ```javascript
 H5F.init($("form"), {immediate: true});
 ```
 
-#### 方式二
+##### 方式二
 
 ```html
 <form data-h5f-immediate="true"></form>
@@ -85,7 +90,7 @@ H5F.init($("form"), {immediate: true});
 <form data-h5f-novalidate="true"></form>
 ```
 
-### 设置验证的提示信息
+### Setting error messages
 
 ```javascript
 H5F.errors({
@@ -100,7 +105,7 @@ H5F.errors({
 });
 ```
 
-### 事件绑定
+### Events
 
 ```javascript
 $("[name]").on({
