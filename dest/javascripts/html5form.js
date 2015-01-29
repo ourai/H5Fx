@@ -20,7 +20,7 @@ var ERROR, Field, Form, LIB_CONFIG, RULE, bindEvent, defaultSettings, elementTyp
 
 LIB_CONFIG = {
   name: "H5F",
-  version: "0.0.1"
+  version: "0.1.0"
 };
 
 RULE = {
@@ -179,7 +179,7 @@ bindEvent = function(form, inst, immediate) {
     $("[name]:checkbox, [name]:radio", form).on("change", function() {
       return validateField(inst, inst.fields[$(this).prop("name")]);
     });
-    $("[name]:not(:checkbox, :radio, [type='hidden'])", form).on("blur", function() {
+    $("[name]:not(:checkbox, :radio)", form).on("blur", function() {
       return validateField(inst, inst.fields[$(this).prop("name")]);
     });
   }

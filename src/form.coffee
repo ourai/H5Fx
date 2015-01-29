@@ -18,7 +18,7 @@ bindEvent = ( form, inst, immediate ) ->
     $("[name]:checkbox, [name]:radio", form).on "change", ->
       validateField inst, inst.fields[$(@).prop("name")]
 
-    $("[name]:not(:checkbox, :radio, [type='hidden'])", form).on "blur", ->
+    $("[name]:not(:checkbox, :radio)", form).on "blur", ->
       validateField inst, inst.fields[$(@).prop("name")]
 
   form.on "submit", ( e ) ->
