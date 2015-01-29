@@ -9,11 +9,15 @@
 
 与表单相关的 HTML 标签有很多，但常用的与字段有关的是 `<input>`、`<textarea>` 和 `<select>`、`<option>`。其中 `<input>` 的行为根据 `type` 值的不同而多变，本插件目前仅支持了一部分：
 
-* `text` -
-* `checkbox` -
-* `radio` -
-* `password` -
-* `number` -
+* `text`
+* `search`
+* ~~`tel`~~
+* ~~`url`~~
+* `email`
+* `password`
+* `checkbox`
+* `radio`
+* `number`
 
 **本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>`。
 

@@ -1,4 +1,7 @@
 RULE =
+  ABSOLUTE_URL: /^.*$/
+  # from https://html.spec.whatwg.org/multipage/forms.html#e-mail-state-(type=email)
+  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   NUMBER: /^\d+(\.0+)?$/
 
 ERROR =
@@ -7,6 +10,8 @@ ERROR =
   LENGTH_SMALLER_THEN_MINIMUM: "LENGTH_SMALLER_THEN_MINIMUM"
   LENGTH_BIGGER_THEN_MAXIMUM: "LENGTH_BIGGER_THEN_MAXIMUM"
   INVALID_VALUE: "INVALID_VALUE"
+  NOT_AN_ABSOLUTE_URL: "NOT_AN_ABSOLUTE_URL"
+  NOT_AN_EMAIL: "NOT_AN_EMAIL"
   NOT_A_NUMBER: "NOT_A_NUMBER"
   UNDERFLOW: "UNDERFLOW"
   OVERFLOW: "OVERFLOW"
@@ -74,7 +79,7 @@ class Field
       @message = ERROR.COULD_NOT_BE_EMPTY
     else
       switch @type
-        when "text", "password", "textarea"
+        when "text", "search", "tel", "url", "email", "password", "textarea"
           # 字符串最小长度
           if hasAttr(ele, "minlength") and val.length < $(ele).prop("minLength")
             @valid = false
@@ -83,10 +88,21 @@ class Field
           else if hasAttr(ele, "maxlength") and val.length > $(ele).prop("maxLength")
             @valid = false
             @message = ERROR.LENGTH_BIGGER_THEN_MAXIMUM
-          # 指定的字符串模式
-          else if @pattern? and @pattern isnt ""
-            @valid = (new RegExp "^#{@pattern}$").test val
-            @message = ERROR.INVALID_VALUE if not @valid
+          # 字符串模式
+          else
+            # URL
+            if @type is "url"
+              @valid = RULE.ABSOLUTE_URL.test val
+              @message = ERROR.NOT_AN_ABSOLUTE_URL if not @valid
+            # E-mail
+            else if @type is "email"
+              @valid = RULE.EMAIL.test val
+              @message = ERROR.NOT_AN_EMAIL if not @valid
+
+            # 自定义
+            if @valid and @pattern? and @pattern isnt ""
+              @valid = (new RegExp "^#{@pattern}$").test val
+              @message = ERROR.INVALID_VALUE if not @valid
         when "number"
           @valid = RULE.NUMBER.test val
 
