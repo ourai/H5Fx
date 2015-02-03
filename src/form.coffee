@@ -74,7 +74,7 @@ class Form
     $(forms).each ->
       form = $(@)
       flag = "H5F-inited"
-      settings = $.extend {}, defaultSettings, settings, {
+      opts = $.extend {}, defaultSettings, settings, {
           immediate: do ->
             attr = form.attr "data-h5f-immediate"
 
@@ -91,7 +91,7 @@ class Form
       if form.data(flag) isnt true
         form.data flag, true
         form.attr "novalidate", true
-        bindEvent(form, new F(@), settings.immediate) if not form.attr("data-h5f-novalidate")?
+        bindEvent(form, new F(@), opts.immediate is true) if not form.attr("data-h5f-novalidate")?
 
   # 自定义出错信息
   @errors = ( msgs ) ->
