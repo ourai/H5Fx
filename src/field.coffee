@@ -7,16 +7,26 @@ RULE =
   NUMBER: /^\d+(\.0+)?$/
 
 ERROR =
-  COULD_NOT_BE_EMPTY: "COULD_NOT_BE_EMPTY"
-  UNKNOWN_INPUT_TYPE: "UNKNOWN_INPUT_TYPE"
-  LENGTH_SMALLER_THAN_MINIMUM: "LENGTH_SMALLER_THAN_MINIMUM"
-  LENGTH_BIGGER_THAN_MAXIMUM: "LENGTH_BIGGER_THAN_MAXIMUM"
-  INVALID_VALUE: "INVALID_VALUE"
-  NOT_AN_ABSOLUTE_URL: "NOT_AN_ABSOLUTE_URL"
-  NOT_AN_EMAIL: "NOT_AN_EMAIL"
-  NOT_A_NUMBER: "NOT_A_NUMBER"
-  UNDERFLOW: "UNDERFLOW"
-  OVERFLOW: "OVERFLOW"
+  COULD_NOT_BE_EMPTY: "Could not be empty."
+  UNKNOWN_INPUT_TYPE: "Unknown input type"
+  LENGTH_SMALLER_THAN_MINIMUM: "The length is smaller than {{MINLENGTH}}."
+  LENGTH_BIGGER_THAN_MAXIMUM: "The length is bigger than {{MAXLENGTH}}."
+  INVALID_VALUE: "Invalid value"
+  NOT_AN_ABSOLUTE_URL: "Not an absolute URL"
+  NOT_AN_EMAIL: "Not an E-mail"
+  NOT_A_NUMBER: "Not a number"
+  UNDERFLOW: "The number is smaller than {{MIN}}."
+  OVERFLOW: "The number is bigger than {{MAX}}."
+
+# 获取错误信息
+errMsg = ( MSG, val ) ->
+  switch MSG
+    when "LENGTH_SMALLER_THAN_MINIMUM" then key = "MINLENGTH"
+    when "LENGTH_BIGGER_THAN_MAXIMUM" then key = "MAXLENGTH"
+    when "UNDERFLOW" then key = "MIN"
+    when "OVERFLOW" then key = "MAX"
+
+  return if key? then ERROR[MSG].replace(new RegExp("\{\{\s*#{key}\s*\}\}", "g"), val) else ERROR[MSG]
 
 # 表单元素类型
 elementType = ( ele ) ->
@@ -78,33 +88,36 @@ class Field
 
     if @required and $.trim(val) is ""
       @valid = false
-      @message = ERROR.COULD_NOT_BE_EMPTY
+      @message = errMsg "COULD_NOT_BE_EMPTY"
     else
       switch @type
         when "text", "search", "tel", "url", "email", "password", "textarea"
+          minLen = $(ele).prop "minLength"
+          maxLen = $(ele).prop "maxLength"
+
           # 字符串最小长度
-          if hasAttr(ele, "minlength") and val.length < $(ele).prop("minLength")
+          if hasAttr(ele, "minlength") and val.length < minLen
             @valid = false
-            @message = ERROR.LENGTH_SMALLER_THAN_MINIMUM
+            @message = errMsg "LENGTH_SMALLER_THAN_MINIMUM", minLen
           # 字符串最大长度
-          else if hasAttr(ele, "maxlength") and val.length > $(ele).prop("maxLength")
+          else if hasAttr(ele, "maxlength") and val.length > maxLen
             @valid = false
-            @message = ERROR.LENGTH_BIGGER_THAN_MAXIMUM
+            @message = errMsg "LENGTH_BIGGER_THAN_MAXIMUM", maxLen
           # 字符串模式
           else
             # URL
             if @type is "url"
               @valid = RULE.ABSOLUTE_URL.test val
-              @message = ERROR.NOT_AN_ABSOLUTE_URL if not @valid
+              @message = errMsg("NOT_AN_ABSOLUTE_URL") if not @valid
             # E-mail
             else if @type is "email"
               @valid = RULE.EMAIL.test val
-              @message = ERROR.NOT_AN_EMAIL if not @valid
+              @message = errMsg("NOT_AN_EMAIL") if not @valid
 
             # 自定义
             if @valid and @pattern? and @pattern isnt ""
               @valid = (RULE[@pattern.match(PATTERN_KEY)?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
-              @message = ERROR.INVALID_VALUE if not @valid
+              @message = errMsg("INVALID_VALUE") if not @valid
         when "number"
           @valid = RULE.NUMBER.test val
 
@@ -115,15 +128,15 @@ class Field
             # 低于最小值
             if minVal? and toNum(val) < minVal
               @valid = false
-              @message = ERROR.UNDERFLOW
+              @message = errMsg "UNDERFLOW", minVal
             # 高于最大值
             else if maxVal? and toNum(val) > maxVal
               @valid = false
-              @message = ERROR.OVERFLOW
+              @message = errMsg "OVERFLOW", maxVal
           else
-            @message = ERROR.NOT_A_NUMBER
+            @message = errMsg "NOT_A_NUMBER"
         else
-          @message = ERROR.UNKNOWN_INPUT_TYPE
+          @message = errMsg "UNKNOWN_INPUT_TYPE"
 
     $(if $.isArray(ele) then ele[0] else ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
 

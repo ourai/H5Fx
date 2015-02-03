@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY, RULE, bindEvent, defaultSettings, elementType, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY, RULE, bindEvent, defaultSettings, elementType, errMsg, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -32,16 +32,38 @@ RULE = {
 };
 
 ERROR = {
-  COULD_NOT_BE_EMPTY: "COULD_NOT_BE_EMPTY",
-  UNKNOWN_INPUT_TYPE: "UNKNOWN_INPUT_TYPE",
-  LENGTH_SMALLER_THAN_MINIMUM: "LENGTH_SMALLER_THAN_MINIMUM",
-  LENGTH_BIGGER_THAN_MAXIMUM: "LENGTH_BIGGER_THAN_MAXIMUM",
-  INVALID_VALUE: "INVALID_VALUE",
-  NOT_AN_ABSOLUTE_URL: "NOT_AN_ABSOLUTE_URL",
-  NOT_AN_EMAIL: "NOT_AN_EMAIL",
-  NOT_A_NUMBER: "NOT_A_NUMBER",
-  UNDERFLOW: "UNDERFLOW",
-  OVERFLOW: "OVERFLOW"
+  COULD_NOT_BE_EMPTY: "Could not be empty.",
+  UNKNOWN_INPUT_TYPE: "Unknown input type",
+  LENGTH_SMALLER_THAN_MINIMUM: "The length is smaller than {{MINLENGTH}}.",
+  LENGTH_BIGGER_THAN_MAXIMUM: "The length is bigger than {{MAXLENGTH}}.",
+  INVALID_VALUE: "Invalid value",
+  NOT_AN_ABSOLUTE_URL: "Not an absolute URL",
+  NOT_AN_EMAIL: "Not an E-mail",
+  NOT_A_NUMBER: "Not a number",
+  UNDERFLOW: "The number is smaller than {{MIN}}.",
+  OVERFLOW: "The number is bigger than {{MAX}}."
+};
+
+errMsg = function(MSG, val) {
+  var key;
+  switch (MSG) {
+    case "LENGTH_SMALLER_THAN_MINIMUM":
+      key = "MINLENGTH";
+      break;
+    case "LENGTH_BIGGER_THAN_MAXIMUM":
+      key = "MAXLENGTH";
+      break;
+    case "UNDERFLOW":
+      key = "MIN";
+      break;
+    case "OVERFLOW":
+      key = "MAX";
+  }
+  if (key != null) {
+    return ERROR[MSG].replace(new RegExp("\{\{\s*" + key + "\s*\}\}", "g"), val);
+  } else {
+    return ERROR[MSG];
+  }
 };
 
 elementType = function(ele) {
@@ -111,12 +133,12 @@ Field = (function() {
   Field.prototype.reset = reset;
 
   Field.prototype.validate = function() {
-    var ele, maxVal, minVal, val, _ref, _ref1, _ref2;
+    var ele, maxLen, maxVal, minLen, minVal, val, _ref, _ref1, _ref2;
     ele = this.element;
     val = this.value();
     if (this.required && $.trim(val) === "") {
       this.valid = false;
-      this.message = ERROR.COULD_NOT_BE_EMPTY;
+      this.message = errMsg("COULD_NOT_BE_EMPTY");
     } else {
       switch (this.type) {
         case "text":
@@ -126,28 +148,30 @@ Field = (function() {
         case "email":
         case "password":
         case "textarea":
-          if (hasAttr(ele, "minlength") && val.length < $(ele).prop("minLength")) {
+          minLen = $(ele).prop("minLength");
+          maxLen = $(ele).prop("maxLength");
+          if (hasAttr(ele, "minlength") && val.length < minLen) {
             this.valid = false;
-            this.message = ERROR.LENGTH_SMALLER_THEN_MINIMUM;
-          } else if (hasAttr(ele, "maxlength") && val.length > $(ele).prop("maxLength")) {
+            this.message = errMsg("LENGTH_SMALLER_THAN_MINIMUM", minLen);
+          } else if (hasAttr(ele, "maxlength") && val.length > maxLen) {
             this.valid = false;
-            this.message = ERROR.LENGTH_BIGGER_THEN_MAXIMUM;
+            this.message = errMsg("LENGTH_BIGGER_THAN_MAXIMUM", maxLen);
           } else {
             if (this.type === "url") {
               this.valid = RULE.ABSOLUTE_URL.test(val);
               if (!this.valid) {
-                this.message = ERROR.NOT_AN_ABSOLUTE_URL;
+                this.message = errMsg("NOT_AN_ABSOLUTE_URL");
               }
             } else if (this.type === "email") {
               this.valid = RULE.EMAIL.test(val);
               if (!this.valid) {
-                this.message = ERROR.NOT_AN_EMAIL;
+                this.message = errMsg("NOT_AN_EMAIL");
               }
             }
             if (this.valid && (this.pattern != null) && this.pattern !== "") {
               this.valid = ((_ref = RULE[(_ref1 = (_ref2 = this.pattern.match(PATTERN_KEY)) != null ? _ref2[1] : void 0) != null ? _ref1 : ""]) != null ? _ref : new RegExp("^" + this.pattern + "$")).test(val);
               if (!this.valid) {
-                this.message = ERROR.INVALID_VALUE;
+                this.message = errMsg("INVALID_VALUE");
               }
             }
           }
@@ -159,17 +183,17 @@ Field = (function() {
             maxVal = getExtremum(ele, "max");
             if ((minVal != null) && toNum(val) < minVal) {
               this.valid = false;
-              this.message = ERROR.UNDERFLOW;
+              this.message = errMsg("UNDERFLOW", minVal);
             } else if ((maxVal != null) && toNum(val) > maxVal) {
               this.valid = false;
-              this.message = ERROR.OVERFLOW;
+              this.message = errMsg("OVERFLOW", maxVal);
             }
           } else {
-            this.message = ERROR.NOT_A_NUMBER;
+            this.message = errMsg("NOT_A_NUMBER");
           }
           break;
         default:
-          this.message = ERROR.UNKNOWN_INPUT_TYPE;
+          this.message = errMsg("UNKNOWN_INPUT_TYPE");
       }
     }
     $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
@@ -269,7 +293,18 @@ Form = (function() {
       form = $(this);
       flag = "H5F-inited";
       settings = $.extend({}, defaultSettings, settings, {
-        immediate: form.attr("data-h5f-immediate") === "true"
+        immediate: (function() {
+          var attr;
+          attr = form.attr("data-h5f-immediate");
+          if (attr === "true") {
+            attr = true;
+          } else if (attr === "false") {
+            attr = false;
+          } else {
+            attr = void 0;
+          }
+          return attr;
+        })()
       });
       if (form.data(flag) !== true) {
         form.data(flag, true);
