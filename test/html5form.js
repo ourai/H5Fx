@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY, RULE, bindEvent, defaultSettings, elementType, errMsg, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY, RULE, bindEvent, defaultSettings, elementType, errMsg, fieldLabel, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -105,6 +105,17 @@ getExtremum = function(ele, type) {
   }
 };
 
+fieldLabel = function(ele) {
+  var id, label, labelText;
+  id = ele.attr("id");
+  labelText = ele.attr("data-h5f-label");
+  if (labelText == null) {
+    label = id != null ? $("label[for='" + id + "']") : ele.closest("label");
+    labelText = label.size() > 0 ? $.trim(label.text()) : "";
+  }
+  return labelText;
+};
+
 Field = (function() {
   function Field(ele) {
     ele = $(ele);
@@ -118,6 +129,7 @@ Field = (function() {
       this.element = ele.get(0);
       this.required = hasAttr(this.element, "required");
       this.pattern = ele.attr("pattern");
+      this.label = fieldLabel(ele);
     }
     reset.call(this);
   }

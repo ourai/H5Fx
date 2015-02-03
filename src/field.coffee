@@ -59,6 +59,17 @@ getExtremum = ( ele, type ) ->
 
   return if $.isNumeric(val) then toNum(val) else null
 
+# 获取字段文本标签
+fieldLabel = ( ele ) ->
+  id = ele.attr "id"
+  labelText = ele.attr "data-h5f-label"
+
+  if not labelText?
+    label = if id? then $("label[for='#{id}']") else ele.closest("label")
+    labelText = if label.size() > 0 then $.trim(label.text()) else ""
+
+  return labelText
+
 class Field
   constructor: ( ele ) ->
     ele = $ ele
@@ -74,6 +85,7 @@ class Field
       @element = ele.get 0
       @required = hasAttr @element, "required"
       @pattern = ele.attr "pattern"
+      @label = fieldLabel ele
 
     reset.call @
 
