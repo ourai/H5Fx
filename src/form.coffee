@@ -74,7 +74,19 @@ class Form
     $(forms).each ->
       form = $(@)
       flag = "H5F-inited"
-      settings = $.extend {}, defaultSettings, settings, {immediate: form.attr("data-h5f-immediate") is "true"}
+      settings = $.extend {}, defaultSettings, settings, {
+          immediate: do ->
+            attr = form.attr "data-h5f-immediate"
+
+            if attr is "true"
+              attr = true
+            else if attr is "false"
+              attr = false
+            else
+              attr = undefined
+
+            return attr
+        }
 
       if form.data(flag) isnt true
         form.data flag, true

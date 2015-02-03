@@ -85,11 +85,11 @@ class Field
           # 字符串最小长度
           if hasAttr(ele, "minlength") and val.length < $(ele).prop("minLength")
             @valid = false
-            @message = ERROR.LENGTH_SMALLER_THEN_MINIMUM
+            @message = ERROR.LENGTH_SMALLER_THAN_MINIMUM
           # 字符串最大长度
           else if hasAttr(ele, "maxlength") and val.length > $(ele).prop("maxLength")
             @valid = false
-            @message = ERROR.LENGTH_BIGGER_THEN_MAXIMUM
+            @message = ERROR.LENGTH_BIGGER_THAN_MAXIMUM
           # 字符串模式
           else
             # URL
