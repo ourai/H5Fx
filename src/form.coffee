@@ -1,3 +1,5 @@
+subBtnSels = ":submit, :image, :reset"
+
 # 默认设置
 defaultSettings =
   # 立即验证
@@ -23,7 +25,7 @@ bindEvent = ( form, inst, immediate ) ->
     $("[name]:checkbox, [name]:radio", form).on "change", ->
       validateField inst, inst.fields[$(@).prop("name")]
 
-    $("[name]:not(:checkbox, :radio)", form).on "blur", ->
+    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on "blur", ->
       validateField inst, inst.fields[$(@).prop("name")]
 
   form.on "submit", ( e ) ->
@@ -48,7 +50,7 @@ class Form
     inst = @
     @invalidCount = 0
 
-    $("[name]:not(select, [type='hidden'])", $(form)).each ->
+    $("[name]:not(select, [type='hidden'], #{subBtnSels})", $(form)).each ->
       ipt = $ @
       name = ipt.prop "name"
 

@@ -161,7 +161,7 @@ class Field
         else
           @message = @error "UNKNOWN_INPUT_TYPE"
 
-      if @valid and hasAttr(ele, "data-h5f-associate")
+      if @valid and not isGroupedElement(ele) and hasAttr(ele, "data-h5f-associate")
         acEle = associatedElement ele
 
         if acEle.size()

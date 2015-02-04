@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, reset, subBtnSels, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -217,7 +217,7 @@ Field = (function() {
         default:
           this.message = this.error("UNKNOWN_INPUT_TYPE");
       }
-      if (this.valid && hasAttr(ele, "data-h5f-associate")) {
+      if (this.valid && !isGroupedElement(ele) && hasAttr(ele, "data-h5f-associate")) {
         acEle = associatedElement(ele);
         if (acEle.size()) {
           this.valid = val === acEle.val();
@@ -234,6 +234,8 @@ Field = (function() {
   return Field;
 
 })();
+
+subBtnSels = ":submit, :image, :reset";
 
 defaultSettings = {
   immediate: false
@@ -261,7 +263,7 @@ bindEvent = function(form, inst, immediate) {
     $("[name]:checkbox, [name]:radio", form).on("change", function() {
       return validateField(inst, inst.fields[$(this).prop("name")]);
     });
-    $("[name]:not(:checkbox, :radio)", form).on("blur", function() {
+    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on("blur", function() {
       return validateField(inst, inst.fields[$(this).prop("name")]);
     });
   }
@@ -293,7 +295,7 @@ Form = (function() {
     var inst;
     inst = this;
     this.invalidCount = 0;
-    $("[name]:not(select, [type='hidden'])", $(form)).each(function() {
+    $("[name]:not(select, [type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
       var ipt, name;
       ipt = $(this);
       name = ipt.prop("name");
