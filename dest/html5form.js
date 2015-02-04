@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, bindEvent, defaultSettings, elementType, fieldLabel, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -41,7 +41,8 @@ ERROR = {
   NOT_AN_EMAIL: "{{LABEL}} isn't an E-mail.",
   NOT_A_NUMBER: "{{LABEL}} isn't a number.",
   UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}.",
-  OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}."
+  OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}.",
+  DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}."
 };
 
 elementType = function(ele) {
@@ -94,6 +95,10 @@ fieldLabel = function(ele) {
   return labelText;
 };
 
+associatedElement = function(ele) {
+  return $("#" + ($(ele).attr("data-h5f-associate")));
+};
+
 Field = (function() {
   function Field(ele) {
     ele = $(ele);
@@ -132,6 +137,9 @@ Field = (function() {
         case "LABEL":
           text = f.label;
           break;
+        case "ASSOCIATE_LABEL":
+          text = "";
+          break;
         case "MINLENGTH":
           text = ele.prop("minLength");
           break;
@@ -149,7 +157,7 @@ Field = (function() {
   };
 
   Field.prototype.validate = function() {
-    var ele, maxVal, minVal, val, _ref, _ref1, _ref2;
+    var acEle, ele, maxVal, minVal, val, _ref, _ref1, _ref2;
     ele = this.element;
     val = this.value();
     if (this.required && $.trim(val) === "") {
@@ -208,6 +216,15 @@ Field = (function() {
           break;
         default:
           this.message = this.error("UNKNOWN_INPUT_TYPE");
+      }
+      if (this.valid && hasAttr(ele, "data-h5f-associate")) {
+        acEle = associatedElement(ele);
+        if (acEle.size()) {
+          this.valid = val === acEle.val();
+          if (!this.valid) {
+            this.message = this.error("DIFFERENT_VALUE");
+          }
+        }
       }
     }
     $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);

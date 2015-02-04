@@ -17,6 +17,7 @@ ERROR =
   NOT_A_NUMBER: "{{LABEL}} isn't a number."
   UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}."
   OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}."
+  DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}."
 
 # 表单元素类型
 elementType = ( ele ) ->
@@ -60,6 +61,10 @@ fieldLabel = ( ele ) ->
 
   return labelText
 
+# 获取关联的字段元素
+associatedElement = ( ele ) ->
+  return $ "##{$(ele).attr "data-h5f-associate"}"
+
 class Field
   constructor: ( ele ) ->
     ele = $ ele
@@ -94,6 +99,7 @@ class Field
     return ERROR[MSG].replace new RegExp(PATTERN_KEY_SOURCE, "g"), ( match, key ) ->
       switch key
         when "LABEL" then text = f.label
+        when "ASSOCIATE_LABEL" then text = ""
         when "MINLENGTH" then text = ele.prop "minLength"
         when "MAXLENGTH" then text = ele.prop "maxLength"
         when "MIN" then text = getExtremum ele, "min"
@@ -154,6 +160,13 @@ class Field
             @message = @error "NOT_A_NUMBER"
         else
           @message = @error "UNKNOWN_INPUT_TYPE"
+
+      if @valid and hasAttr(ele, "data-h5f-associate")
+        acEle = associatedElement ele
+
+        if acEle.size()
+          @valid = val is acEle.val()
+          @message = @error("DIFFERENT_VALUE") if not @valid
 
     $(if $.isArray(ele) then ele[0] else ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
 
