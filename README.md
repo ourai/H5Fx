@@ -96,7 +96,7 @@ H5F.init($("form"), {immediate: true});
 
 ### Associate with other field
 
-与其他字段元素进行关联，使其值必须与被关联的字段元素相同。
+利用 `data-h5f-associate` 属性与其他字段元素进行关联，使其值必须与被关联的字段元素相同。
 
 ```html
 <div>
@@ -141,6 +141,7 @@ H5F.errors({
 目前所支持的变量及其获取值的来源如下：
 
 * `LABEL` - 默认为字段所对应的 `<label>` 标签的文本，也可通过 `<input data-h5f-label="自定义标签">` 的形式设置
+* `ASSOCIATE_LABEL` - 关联字段的标签文本，取值方式与 `LABEL` 一样
 * `MINLENGTH` - `minlength` 属性的值
 * `MAXLENGTH` - `maxlength` 属性的值
 * `MIN` - `min` 属性的值
