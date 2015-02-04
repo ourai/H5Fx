@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, reset, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -138,7 +138,7 @@ Field = (function() {
           text = f.label;
           break;
         case "ASSOCIATE_LABEL":
-          text = "";
+          text = fieldLabel(associatedElement(ele));
           break;
         case "MINLENGTH":
           text = ele.prop("minLength");
@@ -235,6 +235,10 @@ Field = (function() {
 
 })();
 
+defaultSettings = {
+  immediate: false
+};
+
 validateField = function(form, field) {
   field.reset();
   field.validated = true;
@@ -280,8 +284,8 @@ bindEvent = function(form, inst, immediate) {
   });
 };
 
-defaultSettings = {
-  immediate: false
+generateFormId = function() {
+  return "H5F" + ((new Date).getTime().toString(16)) + "F0RM" + ((Form.forms.length + 1).toString(16));
 };
 
 Form = (function() {
@@ -316,13 +320,17 @@ Form = (function() {
 
   Form.version = LIB_CONFIG.version;
 
+  Form.forms = {
+    length: 0
+  };
+
   Form.init = function(forms, settings) {
     var F;
     F = this;
     return $(forms).each(function() {
-      var flag, form, opts;
+      var flag, form, id, inst, opts;
       form = $(this);
-      flag = "H5F-inited";
+      flag = "H5F-form";
       opts = $.extend({}, defaultSettings, settings, {
         immediate: (function() {
           var attr;
@@ -337,11 +345,15 @@ Form = (function() {
           return attr;
         })()
       });
-      if (form.data(flag) !== true) {
-        form.data(flag, true);
+      if (form.data(flag) == null) {
+        inst = new F(this);
+        id = generateFormId(inst);
+        F.forms[id] = inst;
+        F.forms.length++;
+        form.data(flag, id);
         form.attr("novalidate", true);
         if (form.attr("data-h5f-novalidate") == null) {
-          return bindEvent(form, new F(this), opts.immediate === true);
+          return bindEvent(form, inst, opts.immediate === true);
         }
       }
     });
@@ -353,6 +365,19 @@ Form = (function() {
 
   Form.rules = function(rules) {
     return $.extend(RULE, rules);
+  };
+
+
+  /*
+   * 获取指定实例
+   * 
+   * @method  get
+   * @param   formId {String}   $(form).data("H5F-form")
+   * @return  {Object}
+   */
+
+  Form.get = function(formId) {
+    return this.forms[formId];
   };
 
   return Form;

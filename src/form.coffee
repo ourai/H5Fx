@@ -1,3 +1,8 @@
+# 默认设置
+defaultSettings =
+  # 立即验证
+  immediate: false
+
 # 对字段进行验证
 validateField = ( form, field ) ->
   field.reset()
@@ -35,10 +40,8 @@ bindEvent = ( form, inst, immediate ) ->
       e.preventDefault()
       e.stopImmediatePropagation()
 
-# 默认设置
-defaultSettings =
-  # 立即验证
-  immediate: false
+generateFormId = ->
+  return "H5F#{(new Date).getTime().toString(16)}F0RM#{(Form.forms.length + 1).toString(16)}"
 
 class Form
   constructor: ( form ) ->
@@ -67,13 +70,17 @@ class Form
 
   @version = LIB_CONFIG.version
 
+  # 已初始化的实例
+  @forms =
+    length: 0
+
   # 初始化
   @init = ( forms, settings ) ->
     F = @
 
     $(forms).each ->
       form = $(@)
-      flag = "H5F-inited"
+      flag = "H5F-form"
       opts = $.extend {}, defaultSettings, settings, {
           immediate: do ->
             attr = form.attr "data-h5f-immediate"
@@ -88,10 +95,18 @@ class Form
             return attr
         }
 
-      if form.data(flag) isnt true
-        form.data flag, true
+      if not form.data(flag)?
+        inst = new F @
+        id = generateFormId inst
+
+        # 将实例与 form 元素的独有 ID 关联并保存
+        F.forms[id] = inst
+        F.forms.length++
+
+        form.data flag, id
         form.attr "novalidate", true
-        bindEvent(form, new F(@), opts.immediate is true) if not form.attr("data-h5f-novalidate")?
+
+        bindEvent(form, inst, opts.immediate is true) if not form.attr("data-h5f-novalidate")?
 
   # 自定义出错信息
   @errors = ( msgs ) ->
@@ -100,3 +115,13 @@ class Form
   # 自定义验证规则
   @rules = ( rules ) ->
     return $.extend RULE, rules
+
+  ###
+  # 获取指定实例
+  # 
+  # @method  get
+  # @param   formId {String}   $(form).data("H5F-form")
+  # @return  {Object}
+  ###
+  @get = ( formId ) ->
+    return @forms[formId]
