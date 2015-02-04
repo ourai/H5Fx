@@ -94,6 +94,21 @@ H5F.init($("form"), {immediate: true});
 <form data-h5f-novalidate="true"></form>
 ```
 
+### Associate with other field
+
+与其他字段元素进行关联，使其值必须与被关联的字段元素相同。
+
+```html
+<div>
+  <label for="password">密码</label>
+  <input id="password" type="password" value="" name="password" required="required">
+</div>
+<div>
+  <label for="password_confirmation">确认密码</label>
+  <input id="password_confirmation" type="password" value="" name="password_confirmation" data-h5f-associate="password">
+</div>
+```
+
 ### Error messages
 
 现在内部提供的几个错误信息及触发条件如下：
@@ -108,6 +123,7 @@ H5F.init($("form"), {immediate: true});
 * `NOT_A_NUMBER` - 不是数字
 * `UNDERFLOW` - 小于 `min` 属性所指定的值
 * `OVERFLOW` - 大于 `max` 属性所指定的值
+* `DIFFERENT_VALUE` - 与被关联的字段值不同
 
 错误信息可以通过 `H5F.error()` 来自定义。
 
@@ -120,15 +136,15 @@ H5F.errors({
 });
 ```
 
-上面的代码中出现了 `{{KEY}}` 形势的字符串，这是错误信息中的「变量」，以便丰富信息内容。除了所示的方式外，还可以用 `{{LABEL}}中所输入数字请在{{MIN}}～{{MAX}}范围内` 这种包含多种限制条件的形式。
+上面的代码中出现了 `{{KEY}}` 形式的字符串，这是错误信息中的「变量」，以便丰富信息内容。除了所示的方式外，还可以用 `"{{LABEL}}中所输入数字请在{{MIN}}～{{MAX}}范围内"` 这种包含多种限制条件的形式。
 
 目前所支持的变量及其获取值的来源如下：
 
-* `LABEL` - 默认为字段所对应的 `<label>` 标签的文本，也可通过 `<input data-h5f-label="自定义标签">` 的形式设定
-* `MINLENGTH` - 获取 `minlength` 属性的值
-* `MAXLENGTH` - 获取 `maxlength` 属性的值
-* `MIN` - 获取 `min` 属性的值
-* `MAX` - 获取 `max` 属性的值
+* `LABEL` - 默认为字段所对应的 `<label>` 标签的文本，也可通过 `<input data-h5f-label="自定义标签">` 的形式设置
+* `MINLENGTH` - `minlength` 属性的值
+* `MAXLENGTH` - `maxlength` 属性的值
+* `MIN` - `min` 属性的值
+* `MAX` - `max` 属性的值
 
 ### Events
 
