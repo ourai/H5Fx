@@ -1,4 +1,4 @@
-PATTERN_KEY = /^\s*\{\{\s*([A-Z_]+)\s*\}\}\s*$/
+PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}"
 
 RULE =
   ABSOLUTE_URL: /^.*$/
@@ -7,26 +7,16 @@ RULE =
   NUMBER: /^\d+(\.0+)?$/
 
 ERROR =
-  COULD_NOT_BE_EMPTY: "Could not be empty."
-  UNKNOWN_INPUT_TYPE: "Unknown input type"
-  LENGTH_SMALLER_THAN_MINIMUM: "The length is smaller than {{MINLENGTH}}."
-  LENGTH_BIGGER_THAN_MAXIMUM: "The length is bigger than {{MAXLENGTH}}."
-  INVALID_VALUE: "Invalid value"
-  NOT_AN_ABSOLUTE_URL: "Not an absolute URL"
-  NOT_AN_EMAIL: "Not an E-mail"
-  NOT_A_NUMBER: "Not a number"
-  UNDERFLOW: "The number is smaller than {{MIN}}."
-  OVERFLOW: "The number is bigger than {{MAX}}."
-
-# 获取错误信息
-errMsg = ( MSG, val ) ->
-  switch MSG
-    when "LENGTH_SMALLER_THAN_MINIMUM" then key = "MINLENGTH"
-    when "LENGTH_BIGGER_THAN_MAXIMUM" then key = "MAXLENGTH"
-    when "UNDERFLOW" then key = "MIN"
-    when "OVERFLOW" then key = "MAX"
-
-  return if key? then ERROR[MSG].replace(new RegExp("\{\{\s*#{key}\s*\}\}", "g"), val) else ERROR[MSG]
+  COULD_NOT_BE_EMPTY: "{{LABEL}} could not be empty."
+  UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}."
+  LENGTH_SMALLER_THAN_MINIMUM: "The length of {{LABEL}} is smaller than {{MINLENGTH}}."
+  LENGTH_BIGGER_THAN_MAXIMUM: "The length of {{LABEL}} is bigger than {{MAXLENGTH}}."
+  INVALID_VALUE: "{{LABEL}}'s value is invalid."
+  NOT_AN_ABSOLUTE_URL: "{{LABEL}} isn't an absolute URL."
+  NOT_AN_EMAIL: "{{LABEL}} isn't an E-mail."
+  NOT_A_NUMBER: "{{LABEL}} isn't a number."
+  UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}."
+  OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}."
 
 # 表单元素类型
 elementType = ( ele ) ->
@@ -89,47 +79,62 @@ class Field
 
     reset.call @
 
+  # 获取字段的值
+  # 如果是 radio 或 checkbox 等则值为被选中的对象的
   value: ->
     return if isGroupedElement(@element) then $("[name='#{@name}']:checked", $(@form)).val() else $(@element).val()
 
   reset: reset
 
+  # 获取错误信息
+  error: ( MSG ) ->
+    f = @
+    ele = $ f.element
+
+    return ERROR[MSG].replace new RegExp(PATTERN_KEY_SOURCE, "g"), ( match, key ) ->
+      switch key
+        when "LABEL" then text = f.label
+        when "MINLENGTH" then text = ele.prop "minLength"
+        when "MAXLENGTH" then text = ele.prop "maxLength"
+        when "MIN" then text = getExtremum ele, "min"
+        when "MAX" then text = getExtremum ele, "max"
+
+      return text
+
+  # 验证字段有效性
   validate: ->
     ele = @element
     val = @value()
 
     if @required and $.trim(val) is ""
       @valid = false
-      @message = errMsg "COULD_NOT_BE_EMPTY"
+      @message = @error "COULD_NOT_BE_EMPTY"
     else
       switch @type
         when "text", "search", "tel", "url", "email", "password", "textarea"
-          minLen = $(ele).prop "minLength"
-          maxLen = $(ele).prop "maxLength"
-
           # 字符串最小长度
-          if hasAttr(ele, "minlength") and val.length < minLen
+          if hasAttr(ele, "minlength") and val.length < $(ele).prop "minLength"
             @valid = false
-            @message = errMsg "LENGTH_SMALLER_THAN_MINIMUM", minLen
+            @message = @error "LENGTH_SMALLER_THAN_MINIMUM"
           # 字符串最大长度
-          else if hasAttr(ele, "maxlength") and val.length > maxLen
+          else if hasAttr(ele, "maxlength") and val.length > $(ele).prop "maxLength"
             @valid = false
-            @message = errMsg "LENGTH_BIGGER_THAN_MAXIMUM", maxLen
+            @message = @error "LENGTH_BIGGER_THAN_MAXIMUM"
           # 字符串模式
           else
             # URL
             if @type is "url"
               @valid = RULE.ABSOLUTE_URL.test val
-              @message = errMsg("NOT_AN_ABSOLUTE_URL") if not @valid
+              @message = @error("NOT_AN_ABSOLUTE_URL") if not @valid
             # E-mail
             else if @type is "email"
               @valid = RULE.EMAIL.test val
-              @message = errMsg("NOT_AN_EMAIL") if not @valid
+              @message = @error("NOT_AN_EMAIL") if not @valid
 
             # 自定义
             if @valid and @pattern? and @pattern isnt ""
-              @valid = (RULE[@pattern.match(PATTERN_KEY)?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
-              @message = errMsg("INVALID_VALUE") if not @valid
+              @valid = (RULE[@pattern.match(new RegExp "^\s*#{PATTERN_KEY_SOURCE}\s*$")?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
+              @message = @error("INVALID_VALUE") if not @valid
         when "number"
           @valid = RULE.NUMBER.test val
 
@@ -140,15 +145,15 @@ class Field
             # 低于最小值
             if minVal? and toNum(val) < minVal
               @valid = false
-              @message = errMsg "UNDERFLOW", minVal
+              @message = @error "UNDERFLOW"
             # 高于最大值
             else if maxVal? and toNum(val) > maxVal
               @valid = false
-              @message = errMsg "OVERFLOW", maxVal
+              @message = @error "OVERFLOW"
           else
-            @message = errMsg "NOT_A_NUMBER"
+            @message = @error "NOT_A_NUMBER"
         else
-          @message = errMsg "UNKNOWN_INPUT_TYPE"
+          @message = @error "UNKNOWN_INPUT_TYPE"
 
     $(if $.isArray(ele) then ele[0] else ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
 
