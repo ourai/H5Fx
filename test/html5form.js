@@ -102,6 +102,7 @@ associatedElement = function(ele) {
 Field = (function() {
   function Field(ele) {
     ele = $(ele);
+    this.label = fieldLabel(ele);
     this.type = elementType(ele);
     this.name = ele.prop("name");
     this.form = ele.closest("form").get(0);
@@ -112,7 +113,6 @@ Field = (function() {
       this.element = ele.get(0);
       this.required = hasAttr(this.element, "required");
       this.pattern = ele.attr("pattern");
-      this.label = fieldLabel(ele);
     }
     reset.call(this);
   }
@@ -141,10 +141,10 @@ Field = (function() {
           text = fieldLabel(associatedElement(ele));
           break;
         case "MINLENGTH":
-          text = ele.prop("minLength");
+          text = ele.attr("minlength");
           break;
         case "MAXLENGTH":
-          text = ele.prop("maxLength");
+          text = ele.attr("maxlength");
           break;
         case "MIN":
           text = getExtremum(ele, "min");
@@ -172,10 +172,10 @@ Field = (function() {
         case "email":
         case "password":
         case "textarea":
-          if (hasAttr(ele, "minlength") && val.length < $(ele).prop("minLength")) {
+          if (hasAttr(ele, "minlength") && val.length < $(ele).attr("minlength") * 1) {
             this.valid = false;
             this.message = this.error("LENGTH_SMALLER_THAN_MINIMUM");
-          } else if (hasAttr(ele, "maxlength") && val.length > $(ele).prop("maxLength")) {
+          } else if (hasAttr(ele, "maxlength") && val.length > $(ele).attr("maxlength") * 1) {
             this.valid = false;
             this.message = this.error("LENGTH_BIGGER_THAN_MAXIMUM");
           } else {
@@ -227,7 +227,7 @@ Field = (function() {
         }
       }
     }
-    $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
+    $($.isArray(ele) ? ele[0] : ele).triggerHandler("H5F:" + (this.valid ? "valid" : "invalid"), this);
     return this.valid;
   };
 
@@ -268,6 +268,7 @@ bindEvent = function(form, inst, immediate) {
     });
   }
   return form.on("submit", function(e) {
+    $(this).triggerHandler("H5F:beforeValidate", inst);
     $.each(inst.sequence, function(idx, name) {
       var field;
       field = inst.fields[name];
@@ -282,6 +283,8 @@ bindEvent = function(form, inst, immediate) {
     if (inst.invalidCount > 0) {
       e.preventDefault();
       return e.stopImmediatePropagation();
+    } else {
+      return $(this).triggerHandler("H5F:submit", inst);
     }
   });
 };

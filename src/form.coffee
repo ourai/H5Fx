@@ -29,6 +29,8 @@ bindEvent = ( form, inst, immediate ) ->
       validateField inst, inst.fields[$(@).prop("name")]
 
   form.on "submit", ( e ) ->
+    $(@).triggerHandler "H5F:beforeValidate", inst
+
     # 在提交时对没有验证过的表单元素进行验证
     $.each inst.sequence, ( idx, name ) ->
       field = inst.fields[name]
@@ -41,6 +43,8 @@ bindEvent = ( form, inst, immediate ) ->
     if inst.invalidCount > 0
       e.preventDefault()
       e.stopImmediatePropagation()
+    else
+      $(@).triggerHandler "H5F:submit", inst
 
 generateFormId = ->
   return "H5F#{(new Date).getTime().toString(16)}F0RM#{(Form.forms.length + 1).toString(16)}"

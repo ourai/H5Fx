@@ -168,6 +168,6 @@ class Field
           @valid = val is acEle.val()
           @message = @error("DIFFERENT_VALUE") if not @valid
 
-    $(if $.isArray(ele) then ele[0] else ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
+    $(if $.isArray(ele) then ele[0] else ele).triggerHandler "H5F:#{if @valid then "valid" else "invalid"}", @
 
     return @valid

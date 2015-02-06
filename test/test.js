@@ -10,13 +10,29 @@ $(document).ready(function() {
     UNDERFLOW: "{{LABEL}}中所输入数字请在 {{MIN}}-{{MAX}} 范围内",
     OVERFLOW: "{{LABEL}}中所输入数字请在 {{MIN}}-{{MAX}} 范围内"
   });
-  return $("[name]").on({
+  $("[name]").on({
     "H5F:valid": function(e, field) {
-      return $(field.element).parent(".form-group").removeClass("has-error").addClass("has-success");
+      return $(field.element).closest(".form-group").removeClass("has-error").children(".help-block").hide();
     },
     "H5F:invalid": function(e, field) {
-      $(field.element).parent(".form-group").removeClass("has-success").addClass("has-error");
-      return console.log(field.element.id, field.message);
+      var group;
+      group = $(field.element).closest(".form-group");
+      if ($(".help-block", group).size() === 0) {
+        group.append("<p class=\"help-block\" />");
+      }
+      return group.addClass("has-error").children(".help-block").show().text(field.message);
     }
+  });
+  $("form").on("H5F:submit", function() {
+    console.log("submit");
+    return false;
+  });
+  $("#form_1").on("H5F:submit", function() {
+    console.log("form_1 submit");
+    return "form_1";
+  });
+  return $("#form_2").on("H5F:submit", function() {
+    console.log("form_2 submit");
+    return "form_2";
   });
 });

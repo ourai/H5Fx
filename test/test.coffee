@@ -1,5 +1,6 @@
 $(document).ready ->
   H5F.init $("form")
+
   H5F.errors
     COULD_NOT_BE_EMPTY: "{{LABEL}}的值不能为空"
     UNKNOWN_INPUT_TYPE: "{{LABEL}}字段为未知类型"
@@ -13,13 +14,30 @@ $(document).ready ->
   $("[name]").on
     "H5F:valid": ( e, field ) ->
       $(field.element)
-        .parent ".form-group"
+        .closest ".form-group"
         .removeClass "has-error"
-        .addClass "has-success"
-    "H5F:invalid": ( e, field ) ->
-      $(field.element)
-        .parent ".form-group"
-        .removeClass "has-success"
-        .addClass "has-error"
+        .children ".help-block"
+        .hide()
 
-      console.log field.element.id, field.message
+    "H5F:invalid": ( e, field ) ->
+      group = $(field.element).closest ".form-group"
+
+      group.append("<p class=\"help-block\" />") if $(".help-block", group).size() is 0
+
+      group
+        .addClass "has-error"
+        .children ".help-block"
+        .show()
+        .text field.message
+
+  $("form").on "H5F:submit", ->
+    console.log "submit"
+    return false
+
+  $("#form_1").on "H5F:submit", ->
+    console.log "form_1 submit"
+    return "form_1"
+
+  $("#form_2").on "H5F:submit", ->
+    console.log "form_2 submit"
+    return "form_2"
