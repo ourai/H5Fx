@@ -69,6 +69,7 @@ class Field
   constructor: ( ele ) ->
     ele = $ ele
 
+    @label = fieldLabel ele
     @type = elementType ele
     @name = ele.prop "name"
     @form = ele.closest("form").get 0
@@ -80,7 +81,6 @@ class Field
       @element = ele.get 0
       @required = hasAttr @element, "required"
       @pattern = ele.attr "pattern"
-      @label = fieldLabel ele
 
     reset.call @
 
@@ -100,8 +100,8 @@ class Field
       switch key
         when "LABEL" then text = f.label
         when "ASSOCIATE_LABEL" then text = fieldLabel associatedElement ele
-        when "MINLENGTH" then text = ele.prop "minLength"
-        when "MAXLENGTH" then text = ele.prop "maxLength"
+        when "MINLENGTH" then text = ele.attr "minlength"
+        when "MAXLENGTH" then text = ele.attr "maxlength"
         when "MIN" then text = getExtremum ele, "min"
         when "MAX" then text = getExtremum ele, "max"
 
@@ -119,11 +119,11 @@ class Field
       switch @type
         when "text", "search", "tel", "url", "email", "password", "textarea"
           # 字符串最小长度
-          if hasAttr(ele, "minlength") and val.length < $(ele).prop "minLength"
+          if hasAttr(ele, "minlength") and val.length < $(ele).attr("minlength") * 1
             @valid = false
             @message = @error "LENGTH_SMALLER_THAN_MINIMUM"
           # 字符串最大长度
-          else if hasAttr(ele, "maxlength") and val.length > $(ele).prop "maxLength"
+          else if hasAttr(ele, "maxlength") and val.length > $(ele).attr("maxlength") * 1
             @valid = false
             @message = @error "LENGTH_BIGGER_THAN_MAXIMUM"
           # 字符串模式
