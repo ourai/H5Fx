@@ -44,7 +44,7 @@ bindEvent = ( form, inst, immediate ) ->
       e.preventDefault()
       e.stopImmediatePropagation()
     else
-      $(@).triggerHandler "H5F:submit", inst
+      $(@).triggerHandler "H5F:submit", [inst, e]
 
 generateFormId = ->
   return "H5F#{(new Date).getTime().toString(16)}F0RM#{(Form.forms.length + 1).toString(16)}"

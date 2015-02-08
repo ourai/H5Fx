@@ -30,8 +30,10 @@ $(document).ready ->
         .show()
         .text field.message
 
-  $("form").on "H5F:submit", ->
+  $("form").on "H5F:submit", ( e, inst, sub ) ->
     console.log "submit"
+    sub.preventDefault()
+    sub.stopImmediatePropagation()
     return false
 
   $("#form_1").on "H5F:submit", ->

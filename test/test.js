@@ -23,8 +23,10 @@ $(document).ready(function() {
       return group.addClass("has-error").children(".help-block").show().text(field.message);
     }
   });
-  $("form").on("H5F:submit", function() {
+  $("form").on("H5F:submit", function(e, inst, sub) {
     console.log("submit");
+    sub.preventDefault();
+    sub.stopImmediatePropagation();
     return false;
   });
   $("#form_1").on("H5F:submit", function() {

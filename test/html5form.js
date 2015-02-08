@@ -284,7 +284,7 @@ bindEvent = function(form, inst, immediate) {
       e.preventDefault();
       return e.stopImmediatePropagation();
     } else {
-      return $(this).triggerHandler("H5F:submit", inst);
+      return $(this).triggerHandler("H5F:submit", [inst, e]);
     }
   });
 };
