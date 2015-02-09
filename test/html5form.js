@@ -227,7 +227,7 @@ Field = (function() {
         }
       }
     }
-    $($.isArray(ele) ? ele[0] : ele).triggerHandler("H5F:" + (this.valid ? "valid" : "invalid"), this);
+    $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
     return this.valid;
   };
 
@@ -268,7 +268,7 @@ bindEvent = function(form, inst, immediate) {
     });
   }
   return form.on("submit", function(e) {
-    $(this).triggerHandler("H5F:beforeValidate", inst);
+    $(this).trigger("H5F:beforeValidate", inst);
     $.each(inst.sequence, function(idx, name) {
       var field;
       field = inst.fields[name];
@@ -284,7 +284,7 @@ bindEvent = function(form, inst, immediate) {
       e.preventDefault();
       return e.stopImmediatePropagation();
     } else {
-      return $(this).triggerHandler("H5F:submit", [inst, e]);
+      return $(this).trigger("H5F:submit", [inst, e]);
     }
   });
 };

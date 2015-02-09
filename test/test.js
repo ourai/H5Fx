@@ -1,5 +1,7 @@
 $(document).ready(function() {
-  H5F.init($("form"));
+  H5F.init($("form"), {
+    immediate: true
+  });
   H5F.errors({
     COULD_NOT_BE_EMPTY: "{{LABEL}}的值不能为空",
     UNKNOWN_INPUT_TYPE: "{{LABEL}}字段为未知类型",
@@ -25,8 +27,6 @@ $(document).ready(function() {
   });
   $("form").on("H5F:submit", function(e, inst, sub) {
     console.log("submit");
-    sub.preventDefault();
-    sub.stopImmediatePropagation();
     return false;
   });
   $("#form_1").on("H5F:submit", function() {
