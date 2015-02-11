@@ -99,6 +99,7 @@ class Field
     return ERROR[MSG].replace new RegExp(PATTERN_KEY_SOURCE, "g"), ( match, key ) ->
       switch key
         when "LABEL" then text = f.label
+        when "VALUE" then text = f.value()
         when "ASSOCIATE_LABEL" then text = fieldLabel associatedElement ele
         when "MINLENGTH" then text = ele.attr "minlength"
         when "MAXLENGTH" then text = ele.attr "maxlength"

@@ -137,6 +137,9 @@ Field = (function() {
         case "LABEL":
           text = f.label;
           break;
+        case "VALUE":
+          text = f.value();
+          break;
         case "ASSOCIATE_LABEL":
           text = fieldLabel(associatedElement(ele));
           break;
