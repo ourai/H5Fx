@@ -51,12 +51,12 @@ getExtremum = ( ele, type ) ->
   return if $.isNumeric(val) then toNum(val) else null
 
 # 获取字段文本标签
-fieldLabel = ( ele ) ->
+fieldLabel = ( ele, form ) ->
   id = ele.attr "id"
   labelText = ele.attr "data-h5f-label"
 
   if not labelText?
-    label = if id? then $("label[for='#{id}']") else ele.closest("label")
+    label = if id? then $("label[for='#{id}']", form) else ele.closest("label")
     labelText = if label.size() > 0 then $.trim(label.text()) else ""
 
   return labelText
@@ -69,10 +69,10 @@ class Field
   constructor: ( ele ) ->
     ele = $ ele
 
-    @label = fieldLabel ele
+    @form = ele.closest("form").get 0
+    @label = fieldLabel ele, $ @form
     @type = elementType ele
     @name = ele.prop "name"
-    @form = ele.closest("form").get 0
 
     @__validations = []
 
@@ -102,7 +102,7 @@ class Field
       switch key
         when "LABEL" then text = f.label
         when "VALUE" then text = f.value()
-        when "ASSOCIATE_LABEL" then text = fieldLabel associatedElement ele
+        when "ASSOCIATE_LABEL" then text = fieldLabel associatedElement(ele), $(f.form)
         when "MINLENGTH" then text = ele.attr "minlength"
         when "MAXLENGTH" then text = ele.attr "maxlength"
         when "MIN" then text = getExtremum ele, "min"

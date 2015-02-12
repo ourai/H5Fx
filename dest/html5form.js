@@ -84,12 +84,12 @@ getExtremum = function(ele, type) {
   }
 };
 
-fieldLabel = function(ele) {
+fieldLabel = function(ele, form) {
   var id, label, labelText;
   id = ele.attr("id");
   labelText = ele.attr("data-h5f-label");
   if (labelText == null) {
-    label = id != null ? $("label[for='" + id + "']") : ele.closest("label");
+    label = id != null ? $("label[for='" + id + "']", form) : ele.closest("label");
     labelText = label.size() > 0 ? $.trim(label.text()) : "";
   }
   return labelText;
@@ -102,10 +102,10 @@ associatedElement = function(ele) {
 Field = (function() {
   function Field(ele) {
     ele = $(ele);
-    this.label = fieldLabel(ele);
+    this.form = ele.closest("form").get(0);
+    this.label = fieldLabel(ele, $(this.form));
     this.type = elementType(ele);
     this.name = ele.prop("name");
-    this.form = ele.closest("form").get(0);
     this.__validations = [];
     if (isGroupedElement(ele)) {
       this.element = $.makeArray($("[name='" + this.name + "']", $(this.form)));
@@ -142,7 +142,7 @@ Field = (function() {
           text = f.value();
           break;
         case "ASSOCIATE_LABEL":
-          text = fieldLabel(associatedElement(ele));
+          text = fieldLabel(associatedElement(ele), $(f.form));
           break;
         case "MINLENGTH":
           text = ele.attr("minlength");
