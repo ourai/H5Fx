@@ -106,6 +106,7 @@ Field = (function() {
     this.type = elementType(ele);
     this.name = ele.prop("name");
     this.form = ele.closest("form").get(0);
+    this.__validations = [];
     if (isGroupedElement(ele)) {
       this.element = $.makeArray($("[name='" + this.name + "']", $(this.form)));
       this.required = $("[name='" + this.name + "'][required]", $(this.form)).size() > 0;
@@ -229,9 +230,26 @@ Field = (function() {
           }
         }
       }
+      if (this.valid && this.__validations.length > 0) {
+        $.each(this.__validations, (function(_this) {
+          return function(idx, opts) {
+            var _ref3;
+            _this.valid = $.isFunction(opts.handler) ? opts.handler.call(ele) === true : false;
+            if (!_this.valid) {
+              _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref3 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref3 : opts.message);
+            }
+            return _this.valid;
+          };
+        })(this));
+      }
     }
     $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
     return this.valid;
+  };
+
+  Field.prototype.addValidation = function(opts) {
+    this.__validations.push(opts);
+    return opts;
   };
 
   return Field;
@@ -324,6 +342,11 @@ Form = (function() {
       this.sequence.push(name);
     }
     return field;
+  };
+
+  Form.prototype.addValidation = function(fieldName, opts) {
+    var _ref;
+    return (_ref = this.fields[fieldName]) != null ? _ref.addValidation(opts) : void 0;
   };
 
   Form.version = LIB_CONFIG.version;

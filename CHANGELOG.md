@@ -22,3 +22,7 @@
 
 * 增加 `H5F:beforeValidate` 事件，在进行最后的字段校验前触发
 * 增加 `H5F:submit` 事件，在字段校验全部通过后触发
+
+#### 2015.02.12
+
+* 通过 `.addValidation(fieldName, options)` 添加额外的验证条件

@@ -74,6 +74,8 @@ class Field
     @name = ele.prop "name"
     @form = ele.closest("form").get 0
 
+    @__validations = []
+
     if isGroupedElement(ele)
       @element = $.makeArray $("[name='#{@name}']", $(@form))
       @required = $("[name='#{@name}'][required]", $(@form)).size() > 0
@@ -117,6 +119,7 @@ class Field
       @valid = false
       @message = @error "COULD_NOT_BE_EMPTY"
     else
+      # 根据 HTML5 属性进行常规验证
       switch @type
         when "text", "search", "tel", "url", "email", "password", "textarea"
           # 字符串最小长度
@@ -162,6 +165,7 @@ class Field
         else
           @message = @error "UNKNOWN_INPUT_TYPE"
 
+      # 对有关联字段的字段进行验证
       if @valid and not isGroupedElement(ele) and hasAttr(ele, "data-h5f-associate")
         acEle = associatedElement ele
 
@@ -169,6 +173,22 @@ class Field
           @valid = val is acEle.val()
           @message = @error("DIFFERENT_VALUE") if not @valid
 
+      # 进行额外的验证
+      if @valid and @__validations.length > 0
+        $.each @__validations, ( idx, opts ) =>
+          @valid = if $.isFunction(opts.handler) then opts.handler.call(ele) is true else false
+          @message = (if /^[A-Z_]+$/.test(opts.message) then @error(opts.message) else opts.message?() ? opts.message) if not @valid
+
+          return @valid
+
     $(if $.isArray(ele) then ele[0] else ele).trigger "H5F:#{if @valid then "valid" else "invalid"}", @
 
     return @valid
+
+  # 添加额外的验证
+  # opts 为 {handler: function() {}, message: ""} 的形式
+  # 其中 message 可以为 Error Message 的 key、自定义的字符串或返回字符串的函数
+  addValidation: ( opts ) ->
+    @__validations.push opts
+
+    return opts

@@ -74,6 +74,10 @@ class Form
 
     return field
 
+  # 添加额外的验证
+  addValidation: ( fieldName, opts ) ->
+    return @fields[fieldName]?.addValidation opts
+
   @version = LIB_CONFIG.version
 
   # 已初始化的实例

@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  var f1, f1_inst;
   H5F.init($("form"), {
     immediate: true
   });
@@ -29,9 +30,25 @@ $(document).ready(function() {
     console.log("submit");
     return false;
   });
-  $("#form_1").on("H5F:submit", function() {
+  f1 = $("#form_1");
+  f1.on("H5F:submit", function() {
     console.log("form_1 submit");
     return "form_1";
+  });
+  f1_inst = H5F.get(f1.data("H5F-form"));
+  f1_inst.addValidation("form_1_1", {
+    handler: function() {
+      return !isNaN(Number(this.value));
+    },
+    message: "啊哈哈"
+  });
+  f1_inst.addValidation("form_1_1", {
+    handler: function() {
+      return this.value.length > 5;
+    },
+    message: function() {
+      return "长度不对";
+    }
   });
   return $("#form_2").on("H5F:submit", function() {
     console.log("form_2 submit");
