@@ -148,6 +148,29 @@ H5F.errors({
 * `MIN` - `min` 属性的值
 * `MAX` - `max` 属性的值
 
+### APIs
+
+##### 获取指定表单的 `H5F` 实例
+
+```javascript
+// "H5F-form" 存储的是已经初始化的表单所对应的 `H5F` 实例的 ID
+var h5f = H5F.get($("form").data("H5F-form"));
+```
+
+##### 添加额外的验证
+
+```javascript
+// `.addValidation` 的第一个参数是字段的 `name` 属性值
+// 第二个参数中的 `handler` 只有返回 `true` 的时候才当作验证通过
+// 第二个参数中的 `message` 除了可以是任意的字符串，还可以是 Error message 的 key 或返回字符串的函数
+h5f.addValidation("field", {
+  handler: function() {
+    return this.value === "";
+  },
+  message: "The field's value must not be empty!"
+});
+```
+
 ### Events
 
 ```javascript
