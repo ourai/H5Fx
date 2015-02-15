@@ -42,7 +42,7 @@ $(document).ready ->
     console.log "form_1 submit"
     return "form_1"
 
-  f1_inst = H5F.get f1.data("H5F-form")
+  f1_inst = H5F.get f1
   
   f1_inst.addValidation "form_1_1", {
       handler: ->

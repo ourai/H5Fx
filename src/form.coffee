@@ -110,7 +110,7 @@ class Form
             return attr
         }
 
-      if not form.data(flag)?
+      if not @[flag]?
         inst = new F @
         id = generateFormId inst
 
@@ -118,7 +118,7 @@ class Form
         F.forms[id] = inst
         F.forms.length++
 
-        form.data flag, id
+        @[flag] = id
         form.attr "novalidate", true
 
         bindEvent(form, inst, opts.immediate is true) if not form.attr("data-h5f-novalidate")?
@@ -135,8 +135,8 @@ class Form
   # 获取指定实例
   # 
   # @method  get
-  # @param   formId {String}   $(form).data("H5F-form")
+  # @param   form {DOM/jQuery}
   # @return  {Object}
   ###
-  @get = ( formId ) ->
-    return @forms[formId]
+  @get = ( form ) ->
+    return if $.type(form) is "object" then @forms[(if form.nodeType is 1 then form else (form.get?(0) ? {}))["H5F-form"]] else undefined

@@ -390,12 +390,12 @@ Form = (function() {
           return attr;
         })()
       });
-      if (form.data(flag) == null) {
+      if (this[flag] == null) {
         inst = new F(this);
         id = generateFormId(inst);
         F.forms[id] = inst;
         F.forms.length++;
-        form.data(flag, id);
+        this[flag] = id;
         form.attr("novalidate", true);
         if (form.attr("data-h5f-novalidate") == null) {
           return bindEvent(form, inst, opts.immediate === true);
@@ -417,12 +417,17 @@ Form = (function() {
    * 获取指定实例
    * 
    * @method  get
-   * @param   formId {String}   $(form).data("H5F-form")
+   * @param   form {DOM/jQuery}
    * @return  {Object}
    */
 
-  Form.get = function(formId) {
-    return this.forms[formId];
+  Form.get = function(form) {
+    var _ref;
+    if ($.type(form) === "object") {
+      return this.forms[(form.nodeType === 1 ? form : (_ref = typeof form.get === "function" ? form.get(0) : void 0) != null ? _ref : {})["H5F-form"]];
+    } else {
+      return void 0;
+    }
   };
 
   return Form;
