@@ -5,6 +5,11 @@ defaultSettings =
   # 立即验证
   immediate: false
 
+lowerThan = ( ver ) ->
+  info = navigator.userAgent.toLowerCase().match /msie (\d+\.\d+)/
+
+  return if info? then info[1] * 1 < ver else false
+
 # 对字段进行验证
 validateField = ( form, field ) ->
   field.reset()
@@ -25,7 +30,7 @@ bindEvent = ( form, inst, immediate ) ->
     $("[name]:checkbox, [name]:radio", form).on "change", ->
       validateField inst, inst.fields[$(@).prop("name")]
 
-    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on "blur", ->
+    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change" else "input"), ->
       validateField inst, inst.fields[$(@).prop("name")]
 
   form.on "submit", ( e ) ->

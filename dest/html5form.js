@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, reset, subBtnSels, toNum, validateField;
+var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, lowerThan, reset, subBtnSels, toNum, validateField;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -262,6 +262,16 @@ defaultSettings = {
   immediate: false
 };
 
+lowerThan = function(ver) {
+  var info;
+  info = navigator.userAgent.toLowerCase().match(/msie (\d+\.\d+)/);
+  if (info != null) {
+    return info[1] * 1 < ver;
+  } else {
+    return false;
+  }
+};
+
 validateField = function(form, field) {
   field.reset();
   field.validated = true;
@@ -284,7 +294,7 @@ bindEvent = function(form, inst, immediate) {
     $("[name]:checkbox, [name]:radio", form).on("change", function() {
       return validateField(inst, inst.fields[$(this).prop("name")]);
     });
-    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on("blur", function() {
+    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change" : "input"), function() {
       return validateField(inst, inst.fields[$(this).prop("name")]);
     });
   }
