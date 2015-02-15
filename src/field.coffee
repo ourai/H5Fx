@@ -132,36 +132,38 @@ class Field
             @message = @error "LENGTH_BIGGER_THAN_MAXIMUM"
           # 字符串模式
           else
-            # URL
-            if @type is "url"
-              @valid = RULE.ABSOLUTE_URL.test val
-              @message = @error("NOT_AN_ABSOLUTE_URL") if not @valid
-            # E-mail
-            else if @type is "email"
-              @valid = RULE.EMAIL.test val
-              @message = @error("NOT_AN_EMAIL") if not @valid
+            if val isnt ""
+              # URL
+              if @type is "url"
+                @valid = RULE.ABSOLUTE_URL.test val
+                @message = @error("NOT_AN_ABSOLUTE_URL") if not @valid
+              # E-mail
+              else if @type is "email"
+                @valid = RULE.EMAIL.test val
+                @message = @error("NOT_AN_EMAIL") if not @valid
 
             # 自定义
             if @valid and @pattern? and @pattern isnt ""
               @valid = (RULE[@pattern.match(new RegExp "^\s*#{PATTERN_KEY_SOURCE}\s*$")?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
               @message = @error("INVALID_VALUE") if not @valid
         when "number"
-          @valid = RULE.NUMBER.test val
+          if val isnt ""
+            @valid = RULE.NUMBER.test val
 
-          if @valid
-            minVal = getExtremum ele, "min"
-            maxVal = getExtremum ele, "max"
+            if @valid
+              minVal = getExtremum ele, "min"
+              maxVal = getExtremum ele, "max"
 
-            # 低于最小值
-            if minVal? and toNum(val) < minVal
-              @valid = false
-              @message = @error "UNDERFLOW"
-            # 高于最大值
-            else if maxVal? and toNum(val) > maxVal
-              @valid = false
-              @message = @error "OVERFLOW"
-          else
-            @message = @error "NOT_A_NUMBER"
+              # 低于最小值
+              if minVal? and toNum(val) < minVal
+                @valid = false
+                @message = @error "UNDERFLOW"
+              # 高于最大值
+              else if maxVal? and toNum(val) > maxVal
+                @valid = false
+                @message = @error "OVERFLOW"
+            else
+              @message = @error "NOT_A_NUMBER"
         else
           @message = @error "UNKNOWN_INPUT_TYPE"
 

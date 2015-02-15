@@ -183,15 +183,17 @@ Field = (function() {
             this.valid = false;
             this.message = this.error("LENGTH_BIGGER_THAN_MAXIMUM");
           } else {
-            if (this.type === "url") {
-              this.valid = RULE.ABSOLUTE_URL.test(val);
-              if (!this.valid) {
-                this.message = this.error("NOT_AN_ABSOLUTE_URL");
-              }
-            } else if (this.type === "email") {
-              this.valid = RULE.EMAIL.test(val);
-              if (!this.valid) {
-                this.message = this.error("NOT_AN_EMAIL");
+            if (val !== "") {
+              if (this.type === "url") {
+                this.valid = RULE.ABSOLUTE_URL.test(val);
+                if (!this.valid) {
+                  this.message = this.error("NOT_AN_ABSOLUTE_URL");
+                }
+              } else if (this.type === "email") {
+                this.valid = RULE.EMAIL.test(val);
+                if (!this.valid) {
+                  this.message = this.error("NOT_AN_EMAIL");
+                }
               }
             }
             if (this.valid && (this.pattern != null) && this.pattern !== "") {
@@ -203,19 +205,21 @@ Field = (function() {
           }
           break;
         case "number":
-          this.valid = RULE.NUMBER.test(val);
-          if (this.valid) {
-            minVal = getExtremum(ele, "min");
-            maxVal = getExtremum(ele, "max");
-            if ((minVal != null) && toNum(val) < minVal) {
-              this.valid = false;
-              this.message = this.error("UNDERFLOW");
-            } else if ((maxVal != null) && toNum(val) > maxVal) {
-              this.valid = false;
-              this.message = this.error("OVERFLOW");
+          if (val !== "") {
+            this.valid = RULE.NUMBER.test(val);
+            if (this.valid) {
+              minVal = getExtremum(ele, "min");
+              maxVal = getExtremum(ele, "max");
+              if ((minVal != null) && toNum(val) < minVal) {
+                this.valid = false;
+                this.message = this.error("UNDERFLOW");
+              } else if ((maxVal != null) && toNum(val) > maxVal) {
+                this.valid = false;
+                this.message = this.error("OVERFLOW");
+              }
+            } else {
+              this.message = this.error("NOT_A_NUMBER");
             }
-          } else {
-            this.message = this.error("NOT_A_NUMBER");
           }
           break;
         default:
