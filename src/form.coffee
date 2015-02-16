@@ -149,8 +149,13 @@ class Form
   # 获取指定实例
   # 
   # @method  get
-  # @param   form {DOM/jQuery}
+  # @param   form {DOM/jQuery/String}
   # @return  {Object}
   ###
   @get = ( form ) ->
-    return if $.type(form) is "object" then @forms[(if form.nodeType is 1 then form else (form.get?(0) ? {}))["H5F-form"]] else undefined
+    if $.type(form) is "object"
+      id = (if form.nodeType is 1 then form else (form.get?(0) ? {}))["H5F-form"]
+    else if $.type(form) is "string"
+      id = form
+    
+    return @forms[id]
