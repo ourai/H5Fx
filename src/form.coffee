@@ -1,3 +1,8 @@
+EVENT =
+  BEFORE_VALIDATE: "H5F:beforeValidate"
+  SUBMIT: "H5F:submit"
+  VALIDATE: "H5F:validate"
+
 subBtnSels = ":submit, :image, :reset"
 
 # 默认设置
@@ -5,6 +10,7 @@ defaultSettings =
   # 立即验证
   immediate: false
 
+# 当前的 IE 浏览器版本是否小于指定版本
 lowerThan = ( ver ) ->
   info = navigator.userAgent.toLowerCase().match /msie (\d+\.\d+)/
 
@@ -24,32 +30,40 @@ validateField = ( form, field ) ->
 
   return field
 
+# 在提交时对没有验证过的表单元素进行验证
+validateOtherFields = ( inst, immediate ) ->
+  $.each inst.sequence, ( idx, name ) ->
+    field = inst.fields[name]
+    field.validated = false if not immediate
+    ele = field.element
+
+    $(if $.isArray(ele) then ele[0] else ele).trigger(EVENT.VALIDATE) if field.validated is false
+
+    return true
+
 # 绑定事件
 bindEvent = ( form, inst, immediate ) ->
+  $("[name]", form).on EVENT.VALIDATE, ->
+    validateField inst, inst.fields[$(@).prop("name")]
+
   if immediate is true
     $("[name]:checkbox, [name]:radio", form).on "change", ->
-      validateField inst, inst.fields[$(@).prop("name")]
+      $(@).trigger EVENT.VALIDATE
 
     $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change" else "input"), ->
-      validateField inst, inst.fields[$(@).prop("name")]
+      $(@).trigger EVENT.VALIDATE
 
   form.on "submit", ( e ) ->
-    $(@).trigger "H5F:beforeValidate", inst
+    $(@).trigger EVENT.BEFORE_VALIDATE, inst
 
-    # 在提交时对没有验证过的表单元素进行验证
-    $.each inst.sequence, ( idx, name ) ->
-      field = inst.fields[name]
-      field.validated = false if not immediate
-      validateField(inst, field) if field.validated is false
-
-      return true
+    validateOtherFields inst, immediate
 
     # 有无效字段时阻止提交
     if inst.invalidCount > 0
       e.preventDefault()
       e.stopImmediatePropagation()
     else
-      $(@).trigger "H5F:submit", [inst, e]
+      $(@).trigger EVENT.SUBMIT, [inst, e]
 
 generateFormId = ->
   return "H5F#{(new Date).getTime().toString(16)}F0RM#{(Form.forms.length + 1).toString(16)}"
