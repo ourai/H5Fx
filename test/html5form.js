@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, lowerThan, reset, subBtnSels, toNum, validateField;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, lowerThan, reset, subBtnSels, toNum, validateField, validateOtherFields;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -101,20 +101,24 @@ associatedElement = function(ele) {
 
 Field = (function() {
   function Field(ele) {
+    var basedElement, requiredElements;
     ele = $(ele);
     this.form = ele.closest("form").get(0);
-    this.label = fieldLabel(ele, $(this.form));
     this.type = elementType(ele);
     this.name = ele.prop("name");
     this.__validations = [];
     if (isGroupedElement(ele)) {
+      requiredElements = $("[name='" + this.name + "'][required]", $(this.form));
       this.element = $.makeArray($("[name='" + this.name + "']", $(this.form)));
-      this.required = $("[name='" + this.name + "'][required]", $(this.form)).size() > 0;
+      this.required = requiredElements.size() > 0;
+      basedElement = this.required ? requiredElements.eq(0) : $(this.element[0]);
     } else {
       this.element = ele.get(0);
       this.required = hasAttr(this.element, "required");
       this.pattern = ele.attr("pattern");
+      basedElement = ele;
     }
+    this.label = fieldLabel(basedElement, $(this.form));
     reset.call(this);
   }
 
@@ -260,6 +264,12 @@ Field = (function() {
 
 })();
 
+EVENT = {
+  BEFORE_VALIDATE: "H5F:beforeValidate",
+  SUBMIT: "H5F:submit",
+  VALIDATE: "H5F:validate"
+};
+
 subBtnSels = ":submit, :image, :reset";
 
 defaultSettings = {
@@ -293,33 +303,41 @@ validateField = function(form, field) {
   return field;
 };
 
+validateOtherFields = function(inst, immediate) {
+  return $.each(inst.sequence, function(idx, name) {
+    var ele, field;
+    field = inst.fields[name];
+    if (!immediate) {
+      field.validated = false;
+    }
+    ele = field.element;
+    if (field.validated === false) {
+      $($.isArray(ele) ? ele[0] : ele).trigger(EVENT.VALIDATE);
+    }
+    return true;
+  });
+};
+
 bindEvent = function(form, inst, immediate) {
+  $("[name]", form).on(EVENT.VALIDATE, function() {
+    return validateField(inst, inst.fields[$(this).prop("name")]);
+  });
   if (immediate === true) {
     $("[name]:checkbox, [name]:radio", form).on("change", function() {
-      return validateField(inst, inst.fields[$(this).prop("name")]);
+      return $(this).trigger(EVENT.VALIDATE);
     });
     $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change" : "input"), function() {
-      return validateField(inst, inst.fields[$(this).prop("name")]);
+      return $(this).trigger(EVENT.VALIDATE);
     });
   }
   return form.on("submit", function(e) {
-    $(this).trigger("H5F:beforeValidate", inst);
-    $.each(inst.sequence, function(idx, name) {
-      var field;
-      field = inst.fields[name];
-      if (!immediate) {
-        field.validated = false;
-      }
-      if (field.validated === false) {
-        validateField(inst, field);
-      }
-      return true;
-    });
+    $(this).trigger(EVENT.BEFORE_VALIDATE, inst);
+    validateOtherFields(inst, immediate);
     if (inst.invalidCount > 0) {
       e.preventDefault();
       return e.stopImmediatePropagation();
     } else {
-      return $(this).trigger("H5F:submit", [inst, e]);
+      return $(this).trigger(EVENT.SUBMIT, [inst, e]);
     }
   });
 };
@@ -417,17 +435,18 @@ Form = (function() {
    * 获取指定实例
    * 
    * @method  get
-   * @param   form {DOM/jQuery}
+   * @param   form {DOM/jQuery/String}
    * @return  {Object}
    */
 
   Form.get = function(form) {
-    var _ref;
+    var id, _ref;
     if ($.type(form) === "object") {
-      return this.forms[(form.nodeType === 1 ? form : (_ref = typeof form.get === "function" ? form.get(0) : void 0) != null ? _ref : {})["H5F-form"]];
-    } else {
-      return void 0;
+      id = (form.nodeType === 1 ? form : (_ref = typeof form.get === "function" ? form.get(0) : void 0) != null ? _ref : {})["H5F-form"];
+    } else if ($.type(form) === "string") {
+      id = form;
     }
+    return this.forms[id];
   };
 
   return Form;

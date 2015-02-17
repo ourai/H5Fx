@@ -70,19 +70,26 @@ class Field
     ele = $ ele
 
     @form = ele.closest("form").get 0
-    @label = fieldLabel ele, $ @form
     @type = elementType ele
     @name = ele.prop "name"
 
     @__validations = []
 
     if isGroupedElement(ele)
+      requiredElements = $("[name='#{@name}'][required]", $(@form))
+
       @element = $.makeArray $("[name='#{@name}']", $(@form))
-      @required = $("[name='#{@name}'][required]", $(@form)).size() > 0
+      @required = requiredElements.size() > 0
+      
+      basedElement = if @required then requiredElements.eq(0) else $(@element[0])
     else
       @element = ele.get 0
       @required = hasAttr @element, "required"
       @pattern = ele.attr "pattern"
+
+      basedElement = ele
+
+    @label = fieldLabel basedElement, $(@form)
 
     reset.call @
 
