@@ -46,17 +46,18 @@ toNum = ( str ) ->
 
 # 获取极值
 getExtremum = ( ele, type ) ->
-  val = $(ele).prop type
+  return if $.isNumeric(val = $(ele).prop type) then toNum(val) else null
 
-  return if $.isNumeric(val) then toNum(val) else null
+# 获取标签元素
+labelElement = ( ele, form ) ->
+  return if (id = ele.attr "id")? then $("label[for='#{id}']", form) else ele.closest("label")
 
 # 获取字段文本标签
 fieldLabel = ( ele, form ) ->
-  id = ele.attr "id"
   labelText = ele.attr "data-h5f-label"
 
   if not labelText?
-    label = if id? then $("label[for='#{id}']", form) else ele.closest("label")
+    label = labelElement ele, form
     labelText = if label.size() > 0 then $.trim(label.text()) else ""
 
   return labelText
@@ -68,17 +69,18 @@ associatedElement = ( ele ) ->
 class Field
   constructor: ( ele ) ->
     ele = $ ele
+    form = ele.closest("form").eq(0)
 
-    @form = ele.closest("form").get 0
+    @form = form.get 0
     @type = elementType ele
     @name = ele.prop "name"
 
     @__validations = []
 
     if isGroupedElement(ele)
-      requiredElements = $("[name='#{@name}'][required]", $(@form))
+      requiredElements = $("[name='#{@name}'][required]", form)
 
-      @element = $.makeArray $("[name='#{@name}']", $(@form))
+      @element = $.makeArray $("[name='#{@name}']", form)
       @required = requiredElements.size() > 0
       
       basedElement = if @required then requiredElements.eq(0) else $(@element[0])
@@ -89,7 +91,9 @@ class Field
 
       basedElement = ele
 
-    @label = fieldLabel basedElement, $(@form)
+      labelElement(basedElement, form).addClass("H5F-label--required") if @required
+
+    @label = fieldLabel basedElement, form
 
     reset.call @
 
