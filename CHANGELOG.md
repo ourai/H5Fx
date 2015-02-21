@@ -25,4 +25,9 @@
 
 #### 2015.02.12
 
-* 通过 `.addValidation(fieldName, options)` 添加额外的验证条件
+* 通过 `inst.addValidation(fieldName, options)` 添加额外的验证条件
+
+#### 2015.02.21
+
+* 初始化时将必填字段的 `<label>` 加上 `class` 属性 `H5F-label--required`
+* 通过 `H5F.destroy(form)` 销毁已初始化过的表单，并触发 `H5F:destroy` 事件

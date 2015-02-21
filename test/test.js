@@ -26,9 +26,16 @@ $(document).ready(function() {
       return group.addClass("has-error").children(".help-block").show().text(field.message);
     }
   });
-  $("form").on("H5F:submit", function(e, inst, sub) {
-    console.log("submit");
-    return false;
+  $("form").on({
+    "H5F:submit": function(e, inst, sub) {
+      console.log("submit");
+      return false;
+    },
+    "H5F:destroy": function(e) {
+      console.log("destroy");
+      $(".help-block", $(this)).remove();
+      return $(".has-error", $(this)).removeClass("has-error");
+    }
   });
   f1 = $("#form_1");
   f1.on("H5F:submit", function() {

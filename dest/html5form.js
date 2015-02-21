@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateFormId, getExtremum, hasAttr, isGroupedElement, lowerThan, reset, subBtnSels, toNum, validateField, validateOtherFields;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, isGroupedElement, labelElement, lowerThan, reset, subBtnSels, toNum, validateField, validateOtherFields;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -76,20 +76,27 @@ toNum = function(str) {
 
 getExtremum = function(ele, type) {
   var val;
-  val = $(ele).prop(type);
-  if ($.isNumeric(val)) {
+  if ($.isNumeric(val = $(ele).prop(type))) {
     return toNum(val);
   } else {
     return null;
   }
 };
 
+labelElement = function(ele, form) {
+  var id;
+  if ((id = ele.attr("id")) != null) {
+    return $("label[for='" + id + "']", form);
+  } else {
+    return ele.closest("label");
+  }
+};
+
 fieldLabel = function(ele, form) {
-  var id, label, labelText;
-  id = ele.attr("id");
+  var label, labelText;
   labelText = ele.attr("data-h5f-label");
   if (labelText == null) {
-    label = id != null ? $("label[for='" + id + "']", form) : ele.closest("label");
+    label = labelElement(ele, form);
     labelText = label.size() > 0 ? $.trim(label.text()) : "";
   }
   return labelText;
@@ -101,15 +108,16 @@ associatedElement = function(ele) {
 
 Field = (function() {
   function Field(ele) {
-    var basedElement, requiredElements;
+    var basedElement, form, requiredElements;
     ele = $(ele);
-    this.form = ele.closest("form").get(0);
+    form = ele.closest("form").eq(0);
+    this.form = form.get(0);
     this.type = elementType(ele);
     this.name = ele.prop("name");
     this.__validations = [];
     if (isGroupedElement(ele)) {
-      requiredElements = $("[name='" + this.name + "'][required]", $(this.form));
-      this.element = $.makeArray($("[name='" + this.name + "']", $(this.form)));
+      requiredElements = $("[name='" + this.name + "'][required]", form);
+      this.element = $.makeArray($("[name='" + this.name + "']", form));
       this.required = requiredElements.size() > 0;
       basedElement = this.required ? requiredElements.eq(0) : $(this.element[0]);
     } else {
@@ -117,8 +125,11 @@ Field = (function() {
       this.required = hasAttr(this.element, "required");
       this.pattern = ele.attr("pattern");
       basedElement = ele;
+      if (this.required) {
+        labelElement(basedElement, form).addClass("H5F-label--required");
+      }
     }
-    this.label = fieldLabel(basedElement, $(this.form));
+    this.label = fieldLabel(basedElement, form);
     reset.call(this);
   }
 
@@ -267,6 +278,7 @@ Field = (function() {
 EVENT = {
   BEFORE_VALIDATE: "H5F:beforeValidate",
   SUBMIT: "H5F:submit",
+  DESTROY: "H5F:destroy",
   VALIDATE: "H5F:validate"
 };
 
@@ -323,14 +335,14 @@ bindEvent = function(form, inst, immediate) {
     return validateField(inst, inst.fields[$(this).prop("name")]);
   });
   if (immediate === true) {
-    $("[name]:checkbox, [name]:radio", form).on("change", function() {
+    $("[name]:checkbox, [name]:radio", form).on("change.H5F", function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
-    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change" : "input"), function() {
+    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change.H5F" : "input.H5F"), function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
   }
-  return form.on("submit", function(e) {
+  return form.on("submit.H5F", function(e) {
     $(this).trigger(EVENT.BEFORE_VALIDATE, inst);
     validateOtherFields(inst, immediate);
     if (inst.invalidCount > 0) {
@@ -342,14 +354,26 @@ bindEvent = function(form, inst, immediate) {
   });
 };
 
-generateFormId = function() {
+generateInstId = function() {
   return "H5F" + ((new Date).getTime().toString(16)) + "F0RM" + ((Form.forms.length + 1).toString(16));
+};
+
+getInstId = function(form) {
+  var id, _ref;
+  if ($.type(form) === "object") {
+    id = (form.nodeType === 1 ? form : (_ref = typeof form.get === "function" ? form.get(0) : void 0) != null ? _ref : {})["H5F-form"];
+  } else if ($.type(form) === "string") {
+    id = form;
+  }
+  return id;
 };
 
 Form = (function() {
   function Form(form) {
     var inst;
     inst = this;
+    this.form = form;
+    this.novalidate = form.hasAttribute("novalidate");
     this.invalidCount = 0;
     $("[name]:not(select, [type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
       var ipt, name;
@@ -410,7 +434,7 @@ Form = (function() {
       });
       if (this[flag] == null) {
         inst = new F(this);
-        id = generateFormId(inst);
+        id = generateInstId(inst);
         F.forms[id] = inst;
         F.forms.length++;
         this[flag] = id;
@@ -422,12 +446,40 @@ Form = (function() {
     });
   };
 
-  Form.errors = function(msgs) {
-    return $.extend(ERROR, msgs);
-  };
 
-  Form.rules = function(rules) {
-    return $.extend(RULE, rules);
+  /*
+   * 销毁指定表单实例
+   * 
+   * @method  destroy
+   * @param   form {DOM/jQuery/String}
+   * @return  {Boolean}
+   */
+
+  Form.destroy = function(form) {
+    var err, id, inst;
+    id = getInstId(form);
+    inst = this.forms[id];
+    if (inst != null) {
+      form = $(inst.form);
+      form.off(".H5F");
+      $("[name]", form).off(".H5F");
+      $(".H5F-label--required", form).removeClass("H5F-label--required");
+      if (inst.novalidate) {
+        form.attr("novalidate", true);
+      } else {
+        form.removeAttr("novalidate");
+      }
+      try {
+        delete this.forms[id];
+      } catch (_error) {
+        err = _error;
+        this.forms[id] = null;
+      }
+      this.forms.length--;
+      form.trigger(EVENT.DESTROY);
+      return true;
+    }
+    return false;
   };
 
 
@@ -440,13 +492,15 @@ Form = (function() {
    */
 
   Form.get = function(form) {
-    var id, _ref;
-    if ($.type(form) === "object") {
-      id = (form.nodeType === 1 ? form : (_ref = typeof form.get === "function" ? form.get(0) : void 0) != null ? _ref : {})["H5F-form"];
-    } else if ($.type(form) === "string") {
-      id = form;
-    }
-    return this.forms[id];
+    return this.forms[getInstId(form)];
+  };
+
+  Form.errors = function(msgs) {
+    return $.extend(ERROR, msgs);
+  };
+
+  Form.rules = function(rules) {
+    return $.extend(RULE, rules);
   };
 
   return Form;

@@ -30,11 +30,17 @@ $(document).ready ->
         .show()
         .text field.message
 
-  $("form").on "H5F:submit", ( e, inst, sub ) ->
-    console.log "submit"
-    # sub.preventDefault()
-    # sub.stopImmediatePropagation()
-    return false
+  $("form").on
+    "H5F:submit": ( e, inst, sub ) ->
+      console.log "submit"
+      # sub.preventDefault()
+      # sub.stopImmediatePropagation()
+      return false
+    "H5F:destroy": ( e ) ->
+      console.log "destroy"
+
+      $(".help-block", $(@)).remove()
+      $(".has-error", $(@)).removeClass "has-error"
 
   f1 = $("#form_1")
 
