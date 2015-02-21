@@ -1,6 +1,9 @@
 EVENT =
+  # 表单
   BEFORE_VALIDATE: "H5F:beforeValidate"
   SUBMIT: "H5F:submit"
+  DESTROY: "H5F:destroy"
+  # 字段
   VALIDATE: "H5F:validate"
 
 subBtnSels = ":submit, :image, :reset"
@@ -47,13 +50,13 @@ bindEvent = ( form, inst, immediate ) ->
     validateField inst, inst.fields[$(@).prop("name")]
 
   if immediate is true
-    $("[name]:checkbox, [name]:radio", form).on "change", ->
+    $("[name]:checkbox, [name]:radio", form).on "change.H5F", ->
       $(@).trigger EVENT.VALIDATE
 
-    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change" else "input"), ->
+    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change.H5F" else "input.H5F"), ->
       $(@).trigger EVENT.VALIDATE
 
-  form.on "submit", ( e ) ->
+  form.on "submit.H5F", ( e ) ->
     $(@).trigger EVENT.BEFORE_VALIDATE, inst
 
     validateOtherFields inst, immediate
@@ -65,12 +68,25 @@ bindEvent = ( form, inst, immediate ) ->
     else
       $(@).trigger EVENT.SUBMIT, [inst, e]
 
-generateFormId = ->
+# 生成实例 ID
+generateInstId = ->
   return "H5F#{(new Date).getTime().toString(16)}F0RM#{(Form.forms.length + 1).toString(16)}"
+
+# 获取实例 ID
+getInstId = ( form ) ->
+  if $.type(form) is "object"
+    id = (if form.nodeType is 1 then form else (form.get?(0) ? {}))["H5F-form"]
+  else if $.type(form) is "string"
+    id = form
+
+  return id
 
 class Form
   constructor: ( form ) ->
     inst = @
+
+    @form = form
+    @novalidate = form.hasAttribute "novalidate"
     @invalidCount = 0
 
     $("[name]:not(select, [type='hidden'], #{subBtnSels})", $(form)).each ->
@@ -126,7 +142,7 @@ class Form
 
       if not @[flag]?
         inst = new F @
-        id = generateFormId inst
+        id = generateInstId inst
 
         # 将实例与 form 元素的独有 ID 关联并保存
         F.forms[id] = inst
@@ -137,13 +153,42 @@ class Form
 
         bindEvent(form, inst, opts.immediate is true) if not form.attr("data-h5f-novalidate")?
 
-  # 自定义出错信息
-  @errors = ( msgs ) ->
-    return $.extend ERROR, msgs
+  ###
+  # 销毁指定表单实例
+  # 
+  # @method  destroy
+  # @param   form {DOM/jQuery/String}
+  # @return  {Boolean}
+  ###
+  @destroy = ( form ) ->
+    id = getInstId form
+    inst = @forms[id]
 
-  # 自定义验证规则
-  @rules = ( rules ) ->
-    return $.extend RULE, rules
+    if inst?
+      form = $ inst.form
+
+      form.off ".H5F"
+      $("[name]", form).off ".H5F"
+
+      $(".H5F-label--required", form).removeClass "H5F-label--required"
+
+      if inst.novalidate
+        form.attr "novalidate", true
+      else
+        form.removeAttr "novalidate"
+
+      try
+        delete @forms[id]
+      catch err
+        @forms[id] = null
+
+      @forms.length--
+
+      form.trigger EVENT.DESTROY
+
+      return true
+
+    return false
 
   ###
   # 获取指定实例
@@ -152,10 +197,13 @@ class Form
   # @param   form {DOM/jQuery/String}
   # @return  {Object}
   ###
-  @get = ( form ) ->
-    if $.type(form) is "object"
-      id = (if form.nodeType is 1 then form else (form.get?(0) ? {}))["H5F-form"]
-    else if $.type(form) is "string"
-      id = form
-    
-    return @forms[id]
+  @get = ( form ) ->    
+    return @forms[getInstId form]
+
+  # 自定义出错信息
+  @errors = ( msgs ) ->
+    return $.extend ERROR, msgs
+
+  # 自定义验证规则
+  @rules = ( rules ) ->
+    return $.extend RULE, rules
