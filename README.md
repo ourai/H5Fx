@@ -1,4 +1,4 @@
-# HTML5 Form
+# H5F
 
 这是一个基于 [Forms](https://html.spec.whatwg.org/multipage/forms.html#forms) 规范的表单验证插件，即输入字段的值受标准的 HTML5 属性制约。如：
 
@@ -113,8 +113,8 @@ H5F.init($("form"), {immediate: true});
 
 现在内部提供的几个错误信息及触发条件如下：
 
-* `COULD_NOT_BE_EMPTY` - 必填字段为空
 * `UNKNOWN_INPUT_TYPE` - 未知 `type` 类型
+* `COULD_NOT_BE_EMPTY` - 必填字段为空
 * `LENGTH_SMALLER_THAN_MINIMUM` - 长度小于 `minlength` 属性所指定的值
 * `LENGTH_BIGGER_THAN_MAXIMUM` - 长度大于 `maxlength` 属性所指定的值
 * `INVALID_VALUE` - 不符合 `pattern` 属性所定义的模式
@@ -124,6 +124,8 @@ H5F.init($("form"), {immediate: true});
 * `UNDERFLOW` - 小于 `min` 属性所指定的值
 * `OVERFLOW` - 大于 `max` 属性所指定的值
 * `DIFFERENT_VALUE` - 与被关联的字段值不同
+* `AT_LEAST_CHOOSE_ONE` - `checkbox` 拥有 `data-h5f-required` 属性或 `radio` 拥有 `required` 属性并且没有 `checked` 状态
+* `SHOOLD_BE_CHOSEN` - 拥有 `required` 属性的 `checkbox` 不是 `checked` 状态
 
 错误信息可以通过 `H5F.error()` 来自定义。
 
@@ -143,6 +145,8 @@ H5F.errors({
 * `LABEL` - 默认为字段所对应的 `<label>` 标签的文本，也可通过 `<input data-h5f-label="自定义标签">` 的形式设置
 * `VALUE` - 字段的值
 * `ASSOCIATE_LABEL` - 关联字段的标签文本，取值方式与 `LABEL` 一样
+* `UNIT_LABEL` - 成组字段中每个字段的标签文本，取值方式与 `LABEL` 一样
+* `LENGTH` - `value` 属性的字符串长度
 * `MINLENGTH` - `minlength` 属性的值
 * `MAXLENGTH` - `maxlength` 属性的值
 * `MIN` - `min` 属性的值

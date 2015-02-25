@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, isGroupedElement, labelElement, lowerThan, reset, subBtnSels, toNum, validateField, validateOtherFields;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toNum, triggerEvent, validateCheckableElements, validateField, validateInputableElements, validateOtherFields;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -32,8 +32,8 @@ RULE = {
 };
 
 ERROR = {
-  COULD_NOT_BE_EMPTY: "{{LABEL}} could not be empty.",
   UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}.",
+  COULD_NOT_BE_EMPTY: "{{LABEL}} could not be empty.",
   LENGTH_SMALLER_THAN_MINIMUM: "The length of {{LABEL}} is smaller than {{MINLENGTH}}.",
   LENGTH_BIGGER_THAN_MAXIMUM: "The length of {{LABEL}} is bigger than {{MAXLENGTH}}.",
   INVALID_VALUE: "{{LABEL}}'s value is invalid.",
@@ -42,7 +42,9 @@ ERROR = {
   NOT_A_NUMBER: "{{LABEL}} isn't a number.",
   UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}.",
   OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}.",
-  DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}."
+  DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}.",
+  AT_LEAST_CHOOSE_ONE: "At least choose on option from {{LABEL}}.",
+  SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen."
 };
 
 elementType = function(ele) {
@@ -57,17 +59,12 @@ elementType = function(ele) {
   return type;
 };
 
-isGroupedElement = function(ele) {
+isCheckableElement = function(ele) {
   return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) !== -1;
 };
 
 hasAttr = function(ele, attr) {
   return ele.hasAttribute(attr);
-};
-
-reset = function() {
-  this.valid = true;
-  return this.message = "";
 };
 
 toNum = function(str) {
@@ -92,9 +89,11 @@ labelElement = function(ele, form) {
   }
 };
 
-fieldLabel = function(ele, form) {
+fieldLabel = function(ele, form, customizable) {
   var label, labelText;
-  labelText = ele.attr("data-h5f-label");
+  if (customizable !== false) {
+    labelText = ele.attr("data-h5f-label");
+  }
   if (labelText == null) {
     label = labelElement(ele, form);
     labelText = label.size() > 0 ? $.trim(label.text()) : "";
@@ -106,35 +105,186 @@ associatedElement = function(ele) {
   return $("#" + ($(ele).attr("data-h5f-associate")));
 };
 
+reset = function() {
+  this.valid = true;
+  this.message = "";
+};
+
+triggerEvent = function(field, ele) {
+  return $(ele).trigger("H5F:" + (field.valid ? "valid" : "invalid"), field);
+};
+
+requiredAttr = function(isCheckbox) {
+  if ($.type(isCheckbox) === "string") {
+    isCheckbox = isCheckbox === "checkbox";
+  }
+  return "[" + (isCheckbox ? "data-h5f-" : "") + "required]";
+};
+
+validateInputableElements = function() {
+  var acEle, ele, maxVal, minVal, val, _ref, _ref1, _ref2;
+  ele = this.element;
+  val = this.value();
+  if (this.required && $.trim(val) === "") {
+    this.valid = false;
+    this.message = this.error("COULD_NOT_BE_EMPTY");
+  } else {
+    switch (this.type) {
+      case "text":
+      case "search":
+      case "tel":
+      case "url":
+      case "email":
+      case "password":
+      case "textarea":
+        if (hasAttr(ele, "minlength") && val.length < $(ele).attr("minlength") * 1) {
+          this.valid = false;
+          this.message = this.error("LENGTH_SMALLER_THAN_MINIMUM");
+        } else if (hasAttr(ele, "maxlength") && val.length > $(ele).attr("maxlength") * 1) {
+          this.valid = false;
+          this.message = this.error("LENGTH_BIGGER_THAN_MAXIMUM");
+        } else {
+          if (val !== "") {
+            if (this.type === "url") {
+              this.valid = RULE.ABSOLUTE_URL.test(val);
+              if (!this.valid) {
+                this.message = this.error("NOT_AN_ABSOLUTE_URL");
+              }
+            } else if (this.type === "email") {
+              this.valid = RULE.EMAIL.test(val);
+              if (!this.valid) {
+                this.message = this.error("NOT_AN_EMAIL");
+              }
+            }
+          }
+          if (this.valid && (this.pattern != null) && this.pattern !== "") {
+            this.valid = ((_ref = RULE[(_ref1 = (_ref2 = this.pattern.match(new RegExp("^\s*" + PATTERN_KEY_SOURCE + "\s*$"))) != null ? _ref2[1] : void 0) != null ? _ref1 : ""]) != null ? _ref : new RegExp("^" + this.pattern + "$")).test(val);
+            if (!this.valid) {
+              this.message = this.error("INVALID_VALUE");
+            }
+          }
+        }
+        break;
+      case "number":
+        if (val !== "") {
+          this.valid = RULE.NUMBER.test(val);
+          if (this.valid) {
+            minVal = getExtremum(ele, "min");
+            maxVal = getExtremum(ele, "max");
+            if ((minVal != null) && toNum(val) < minVal) {
+              this.valid = false;
+              this.message = this.error("UNDERFLOW");
+            } else if ((maxVal != null) && toNum(val) > maxVal) {
+              this.valid = false;
+              this.message = this.error("OVERFLOW");
+            }
+          } else {
+            this.message = this.error("NOT_A_NUMBER");
+          }
+        }
+        break;
+      default:
+        this.message = this.error("UNKNOWN_INPUT_TYPE");
+    }
+    if (this.valid && hasAttr(ele, "data-h5f-associate")) {
+      acEle = associatedElement(ele);
+      if (acEle.size()) {
+        this.valid = val === acEle.val();
+        if (!this.valid) {
+          this.message = this.error("DIFFERENT_VALUE");
+        }
+      }
+    }
+    if (this.valid && this.__validations.length > 0) {
+      $.each(this.__validations, (function(_this) {
+        return function(idx, opts) {
+          var _ref3;
+          _this.valid = $.isFunction(opts.handler) ? opts.handler.call(ele) === true : false;
+          if (!_this.valid) {
+            _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref3 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref3 : opts.message);
+          }
+          return _this.valid;
+        };
+      })(this));
+    }
+  }
+  triggerEvent(this, ele);
+  return this.valid;
+};
+
+validateCheckableElements = function() {
+  var e, ele, elements, isCheckbox;
+  elements = $(this.element);
+  isCheckbox = this.type === "checkbox";
+  if (this.required && elements.closest(":checked").size() === 0) {
+    this.valid = false;
+    this.message = this.error("AT_LEAST_CHOOSE_ONE");
+    ele = elements.closest(requiredAttr(isCheckbox));
+  } else {
+    if (isCheckbox) {
+      ele = elements.closest("[required]");
+      if (ele.size() > 0) {
+        ele.each((function(_this) {
+          return function(idx, el) {
+            _this.valid = $(el).is(":checked");
+            if (!_this.valid) {
+              _this.__element = el;
+            }
+            return _this.valid;
+          };
+        })(this));
+        if (this.valid) {
+          try {
+            delete this.__element;
+          } catch (_error) {
+            e = _error;
+            this.__element = void 0;
+          }
+        } else {
+          this.message = this.error("SHOOLD_BE_CHOSEN");
+        }
+      } else {
+        ele = elements;
+      }
+    } else {
+      ele = elements;
+    }
+  }
+  triggerEvent(this, ele.get(0));
+  return this.valid;
+};
+
 Field = (function() {
   function Field(ele) {
-    var basedElement, form, requiredElements;
+    var elements, form, requiredElements;
     ele = $(ele);
     form = ele.closest("form").eq(0);
     this.form = form.get(0);
     this.type = elementType(ele);
     this.name = ele.prop("name");
     this.__validations = [];
-    if (isGroupedElement(ele)) {
-      requiredElements = $("[name='" + this.name + "'][required]", form);
-      this.element = $.makeArray($("[name='" + this.name + "']", form));
+    if (isCheckableElement(ele)) {
+      elements = $("[name='" + this.name + "']", form);
+      requiredElements = elements.closest(requiredAttr(this.type));
+      this.element = $.makeArray(elements);
       this.required = requiredElements.size() > 0;
-      basedElement = this.required ? requiredElements.eq(0) : $(this.element[0]);
+      this.label = fieldLabel((this.required ? requiredElements.eq(0) : $(this.element[0])), form);
+      this.validate = validateCheckableElements;
     } else {
       this.element = ele.get(0);
       this.required = hasAttr(this.element, "required");
+      this.label = fieldLabel(ele, form);
       this.pattern = ele.attr("pattern");
-      basedElement = ele;
+      this.validate = validateInputableElements;
       if (this.required) {
-        labelElement(basedElement, form).addClass("H5F-label--required");
+        labelElement(ele, form).addClass("H5F-label--required");
       }
     }
-    this.label = fieldLabel(basedElement, form);
     reset.call(this);
   }
 
   Field.prototype.value = function() {
-    if (isGroupedElement(this.element)) {
+    if (isCheckableElement(this.element)) {
       return $("[name='" + this.name + "']:checked", $(this.form)).val();
     } else {
       return $(this.element).val();
@@ -159,6 +309,12 @@ Field = (function() {
         case "ASSOCIATE_LABEL":
           text = fieldLabel(associatedElement(ele), $(f.form));
           break;
+        case "UNIT_LABEL":
+          text = fieldLabel($(f.__element), $(f.form), false);
+          break;
+        case "LENGTH":
+          text = f.value().length;
+          break;
         case "MINLENGTH":
           text = ele.attr("minlength");
           break;
@@ -173,97 +329,6 @@ Field = (function() {
       }
       return text;
     });
-  };
-
-  Field.prototype.validate = function() {
-    var acEle, ele, maxVal, minVal, val, _ref, _ref1, _ref2;
-    ele = this.element;
-    val = this.value();
-    if (this.required && $.trim(val) === "") {
-      this.valid = false;
-      this.message = this.error("COULD_NOT_BE_EMPTY");
-    } else {
-      switch (this.type) {
-        case "text":
-        case "search":
-        case "tel":
-        case "url":
-        case "email":
-        case "password":
-        case "textarea":
-          if (hasAttr(ele, "minlength") && val.length < $(ele).attr("minlength") * 1) {
-            this.valid = false;
-            this.message = this.error("LENGTH_SMALLER_THAN_MINIMUM");
-          } else if (hasAttr(ele, "maxlength") && val.length > $(ele).attr("maxlength") * 1) {
-            this.valid = false;
-            this.message = this.error("LENGTH_BIGGER_THAN_MAXIMUM");
-          } else {
-            if (val !== "") {
-              if (this.type === "url") {
-                this.valid = RULE.ABSOLUTE_URL.test(val);
-                if (!this.valid) {
-                  this.message = this.error("NOT_AN_ABSOLUTE_URL");
-                }
-              } else if (this.type === "email") {
-                this.valid = RULE.EMAIL.test(val);
-                if (!this.valid) {
-                  this.message = this.error("NOT_AN_EMAIL");
-                }
-              }
-            }
-            if (this.valid && (this.pattern != null) && this.pattern !== "") {
-              this.valid = ((_ref = RULE[(_ref1 = (_ref2 = this.pattern.match(new RegExp("^\s*" + PATTERN_KEY_SOURCE + "\s*$"))) != null ? _ref2[1] : void 0) != null ? _ref1 : ""]) != null ? _ref : new RegExp("^" + this.pattern + "$")).test(val);
-              if (!this.valid) {
-                this.message = this.error("INVALID_VALUE");
-              }
-            }
-          }
-          break;
-        case "number":
-          if (val !== "") {
-            this.valid = RULE.NUMBER.test(val);
-            if (this.valid) {
-              minVal = getExtremum(ele, "min");
-              maxVal = getExtremum(ele, "max");
-              if ((minVal != null) && toNum(val) < minVal) {
-                this.valid = false;
-                this.message = this.error("UNDERFLOW");
-              } else if ((maxVal != null) && toNum(val) > maxVal) {
-                this.valid = false;
-                this.message = this.error("OVERFLOW");
-              }
-            } else {
-              this.message = this.error("NOT_A_NUMBER");
-            }
-          }
-          break;
-        default:
-          this.message = this.error("UNKNOWN_INPUT_TYPE");
-      }
-      if (this.valid && !isGroupedElement(ele) && hasAttr(ele, "data-h5f-associate")) {
-        acEle = associatedElement(ele);
-        if (acEle.size()) {
-          this.valid = val === acEle.val();
-          if (!this.valid) {
-            this.message = this.error("DIFFERENT_VALUE");
-          }
-        }
-      }
-      if (this.valid && this.__validations.length > 0) {
-        $.each(this.__validations, (function(_this) {
-          return function(idx, opts) {
-            var _ref3;
-            _this.valid = $.isFunction(opts.handler) ? opts.handler.call(ele) === true : false;
-            if (!_this.valid) {
-              _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref3 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref3 : opts.message);
-            }
-            return _this.valid;
-          };
-        })(this));
-      }
-    }
-    $($.isArray(ele) ? ele[0] : ele).trigger("H5F:" + (this.valid ? "valid" : "invalid"), this);
-    return this.valid;
   };
 
   Field.prototype.addValidation = function(opts) {
