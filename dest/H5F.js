@@ -213,7 +213,7 @@ validateInputableElements = function() {
 };
 
 validateCheckableElements = function() {
-  var e, ele, elements, isCheckbox;
+  var ele, elements, isCheckbox;
   elements = $(this.element);
   isCheckbox = this.type === "checkbox";
   if (this.required && elements.closest(":checked").size() === 0) {
@@ -234,12 +234,7 @@ validateCheckableElements = function() {
           };
         })(this));
         if (this.valid) {
-          try {
-            delete this.__element;
-          } catch (_error) {
-            e = _error;
-            this.__element = void 0;
-          }
+          delete this.__element;
         } else {
           this.message = this.error("SHOOLD_BE_CHOSEN");
         }
@@ -528,7 +523,7 @@ Form = (function() {
    */
 
   Form.destroy = function(form) {
-    var err, id, inst;
+    var id, inst;
     id = getInstId(form);
     inst = this.forms[id];
     if (inst != null) {
@@ -541,14 +536,8 @@ Form = (function() {
       } else {
         form.removeAttr("novalidate");
       }
-      try {
-        delete this.forms[id];
-        delete inst.form["H5F-form"];
-      } catch (_error) {
-        err = _error;
-        this.forms[id] = null;
-        inst.form["H5F-form"] = null;
-      }
+      delete this.forms[id];
+      delete inst.form["H5F-form"];
       this.forms.length--;
       form.trigger(EVENT.DESTROY);
       return true;

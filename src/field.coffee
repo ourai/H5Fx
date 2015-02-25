@@ -181,10 +181,7 @@ validateCheckableElements = ->
           return @valid
 
         if @valid
-          try
-            delete @__element
-          catch e
-            @__element = undefined
+          delete @__element
         else
           @message = @error "SHOOLD_BE_CHOSEN"
       else

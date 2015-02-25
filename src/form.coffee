@@ -185,12 +185,8 @@ class Form
       else
         form.removeAttr "novalidate"
 
-      try
-        delete @forms[id]
-        delete inst.form["H5F-form"]
-      catch err
-        @forms[id] = null
-        inst.form["H5F-form"] = null
+      delete @forms[id]
+      delete inst.form["H5F-form"]
 
       @forms.length--
 
