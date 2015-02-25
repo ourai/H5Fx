@@ -13,6 +13,8 @@ defaultSettings =
   # 立即验证
   immediate: false
 
+initCount = 0
+
 # 当前的 IE 浏览器版本是否小于指定版本
 lowerThan = ( ver ) ->
   info = navigator.userAgent.toLowerCase().match /msie (\d+\.\d+)/
@@ -68,9 +70,13 @@ bindEvent = ( form, inst, immediate ) ->
     else
       $(@).trigger EVENT.SUBMIT, [inst, e]
 
+# 十进制转换为十六进制
+toHex = ( num ) ->
+  return num.toString 16
+
 # 生成实例 ID
 generateInstId = ->
-  return "H5F#{(new Date).getTime().toString(16)}F0RM#{(Form.forms.length + 1).toString(16)}"
+  return "H5F0RM#{toHex initCount}#{toHex (new Date).getTime()}#{toHex Form.forms.length + 1}"
 
 # 获取实例 ID
 getInstId = ( form ) ->
@@ -88,6 +94,8 @@ class Form
     @form = form
     @novalidate = form.hasAttribute "novalidate"
     @invalidCount = 0
+
+    initCount++
 
     $("[name]:not(select, [type='hidden'], #{subBtnSels})", $(form)).each ->
       ipt = $ @
@@ -179,8 +187,10 @@ class Form
 
       try
         delete @forms[id]
+        delete inst.form["H5F-form"]
       catch err
         @forms[id] = null
+        inst.form["H5F-form"] = null
 
       @forms.length--
 

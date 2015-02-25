@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toNum, triggerEvent, validateCheckableElements, validateField, validateInputableElements, validateOtherFields;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateInputableElements, validateOtherFields;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -353,6 +353,8 @@ defaultSettings = {
   immediate: false
 };
 
+initCount = 0;
+
 lowerThan = function(ver) {
   var info;
   info = navigator.userAgent.toLowerCase().match(/msie (\d+\.\d+)/);
@@ -419,8 +421,12 @@ bindEvent = function(form, inst, immediate) {
   });
 };
 
+toHex = function(num) {
+  return num.toString(16);
+};
+
 generateInstId = function() {
-  return "H5F" + ((new Date).getTime().toString(16)) + "F0RM" + ((Form.forms.length + 1).toString(16));
+  return "H5F0RM" + (toHex(initCount)) + (toHex((new Date).getTime())) + (toHex(Form.forms.length + 1));
 };
 
 getInstId = function(form) {
@@ -440,6 +446,7 @@ Form = (function() {
     this.form = form;
     this.novalidate = form.hasAttribute("novalidate");
     this.invalidCount = 0;
+    initCount++;
     $("[name]:not(select, [type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
       var ipt, name;
       ipt = $(this);
@@ -536,9 +543,11 @@ Form = (function() {
       }
       try {
         delete this.forms[id];
+        delete inst.form["H5F-form"];
       } catch (_error) {
         err = _error;
         this.forms[id] = null;
+        inst.form["H5F-form"] = null;
       }
       this.forms.length--;
       form.trigger(EVENT.DESTROY);
