@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateInputableElements, validateOtherFields;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -43,8 +43,9 @@ ERROR = {
   UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}.",
   OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}.",
   DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}.",
-  AT_LEAST_CHOOSE_ONE: "At least choose on option from {{LABEL}}.",
-  SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen."
+  AT_LEAST_CHOOSE_ONE: "At least choose an option from {{LABEL}}.",
+  SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen.",
+  SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
 };
 
 elementType = function(ele) {
@@ -121,7 +122,7 @@ requiredAttr = function(isCheckbox) {
   return "[" + (isCheckbox ? "data-h5f-" : "") + "required]";
 };
 
-validateInputableElements = function() {
+validateTextualElements = function() {
   var acEle, ele, maxVal, minVal, val, _ref, _ref1, _ref2;
   ele = this.element;
   val = this.value();
@@ -212,6 +213,15 @@ validateInputableElements = function() {
   return this.valid;
 };
 
+validateSelectElement = function() {
+  if (this.required && $.trim(this.value()) === "") {
+    this.valid = false;
+    this.message = this.error("SHOOLD_CHOOSE_AN_OPTION");
+  }
+  triggerEvent(this, this.element);
+  return this.valid;
+};
+
 validateCheckableElements = function() {
   var ele, elements, isCheckbox;
   elements = $(this.element);
@@ -269,8 +279,12 @@ Field = (function() {
       this.element = ele.get(0);
       this.required = hasAttr(this.element, "required");
       this.label = fieldLabel(ele, form);
-      this.pattern = ele.attr("pattern");
-      this.validate = validateInputableElements;
+      if (this.element.tagName.toLowerCase() === "select") {
+        this.validate = validateSelectElement;
+      } else {
+        this.validate = validateTextualElements;
+        this.pattern = ele.attr("pattern");
+      }
       if (this.required) {
         labelElement(ele, form).addClass("H5F-label--required");
       }

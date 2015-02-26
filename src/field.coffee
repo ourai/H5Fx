@@ -8,7 +8,7 @@ RULE =
 
 ERROR =
   UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}."
-  # For inputable elements
+  # For textual elements
   COULD_NOT_BE_EMPTY: "{{LABEL}} could not be empty."
   LENGTH_SMALLER_THAN_MINIMUM: "The length of {{LABEL}} is smaller than {{MINLENGTH}}."
   LENGTH_BIGGER_THAN_MAXIMUM: "The length of {{LABEL}} is bigger than {{MAXLENGTH}}."
@@ -20,8 +20,10 @@ ERROR =
   OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}."
   DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}."
   # For checkable elements
-  AT_LEAST_CHOOSE_ONE: "At least choose on option from {{LABEL}}."
+  AT_LEAST_CHOOSE_ONE: "At least choose an option from {{LABEL}}."
   SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen."
+  # For select
+  SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
 
 # 表单元素类型
 elementType = ( ele ) ->
@@ -82,8 +84,8 @@ requiredAttr = ( isCheckbox ) ->
 
   return "[#{if isCheckbox then "data-h5f-" else ""}required]"
 
-# 验证可输入字段的有效性
-validateInputableElements = ->
+# 验证文本类字段的有效性
+validateTextualElements = ->
   ele = @element
   val = @value()
 
@@ -159,6 +161,16 @@ validateInputableElements = ->
 
   return @valid
 
+# 验证 <select> 的有效性
+validateSelectElement = ->
+  if @required and $.trim(@value()) is ""
+    @valid = false
+    @message = @error "SHOOLD_CHOOSE_AN_OPTION"
+
+  triggerEvent @, @element
+
+  return @valid
+
 # 验证可选择字段的有效性
 validateCheckableElements = ->
   elements = $ @element
@@ -217,9 +229,12 @@ class Field
       @element = ele.get 0
       @required = hasAttr @element, "required"
       @label = fieldLabel ele, form
-      @pattern = ele.attr "pattern"
 
-      @validate = validateInputableElements
+      if @element.tagName.toLowerCase() is "select"
+        @validate = validateSelectElement
+      else
+        @validate = validateTextualElements
+        @pattern = ele.attr "pattern"
 
       labelElement(ele, form).addClass("H5F-label--required") if @required
 

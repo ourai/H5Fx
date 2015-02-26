@@ -19,7 +19,7 @@
 * `checkbox`
 * `radio`
 
-**本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>`。
+**本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>` 和 `<select>`。
 
 ## Dependencies
 
