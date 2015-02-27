@@ -23,22 +23,13 @@
 
 **本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>` 和 `<select>`。
 
-## Browser support
-
-目前只测试了 PC 端的部分浏览器：
-
-* Internet Explorer 8 and later
-* Google Chrome
-* Mozilla Firefox
-* Safari
-
 ## Usage
 
-按照以下步骤进行操作，就能简单地使用插件的基本功能。
+按照以下步骤进行操作，就能简单地使用本插件的基本功能：
 
 1. 引入 [1.8.0](https://github.com/jquery/jquery/releases) 以上版本的 [jQuery](http://jquery.com/)；
 2. 使用 IE 8 及以上或其他现代浏览器；
-3. 在 `<form>` 被加载后运行 JS 代码 `H5F.init($("form"));`。
+3. 在 `<form>` 被加载后运行 JS 代码 `H5F.init(form);`。
 
 ## Limitation
 

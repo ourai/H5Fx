@@ -31,17 +31,3 @@ H5F.errors({
   OVERFLOW: "{{LABEL}}不能大于{{MAX}}"
 });
 ```
-
-上面的代码中出现了 `{{KEY}}` 形式的字符串，这是错误信息中的「变量」，以便丰富信息内容。除了所示的方式外，还可以用 `"{{LABEL}}中所输入数字请在{{MIN}}～{{MAX}}范围内"` 这种包含多种限制条件的形式。
-
-目前所支持的变量及其获取值的来源如下：
-
-* `LABEL` - 默认为字段所对应的 `<label>` 标签的文本，也可通过 `<input data-h5f-label="自定义标签">` 的形式设置
-* `VALUE` - 字段的值
-* `ASSOCIATE_LABEL` - 关联字段的标签文本，取值方式与 `LABEL` 一样
-* `UNIT_LABEL` - 成组字段中每个字段的标签文本，取值方式与 `LABEL` 一样
-* `LENGTH` - `value` 属性的字符串长度
-* `MINLENGTH` - `minlength` 属性的值
-* `MAXLENGTH` - `maxlength` 属性的值
-* `MIN` - `min` 属性的值
-* `MAX` - `max` 属性的值
