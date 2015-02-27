@@ -52,7 +52,7 @@ bindEvent = ( form, inst, immediate ) ->
     validateField inst, inst.fields[$(@).prop("name")]
 
   if immediate is true
-    $("[name]:checkbox, [name]:radio", form).on "change.H5F", ->
+    $("[name]:checkbox, [name]:radio, select[name]", form).on "change.H5F", ->
       $(@).trigger EVENT.VALIDATE
 
     $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change.H5F" else "input.H5F"), ->
@@ -97,7 +97,7 @@ class Form
 
     initCount++
 
-    $("[name]:not(select, [type='hidden'], #{subBtnSels})", $(form)).each ->
+    $("[name]:not([type='hidden'], #{subBtnSels})", $(form)).each ->
       ipt = $ @
       name = ipt.prop "name"
 

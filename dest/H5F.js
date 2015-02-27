@@ -49,15 +49,12 @@ ERROR = {
 };
 
 elementType = function(ele) {
-  var type, _ref;
-  switch (ele.get(0).tagName.toLowerCase()) {
-    case "textarea":
-      type = "textarea";
-      break;
-    case "input":
-      type = (_ref = ele.attr("type")) != null ? _ref : "text";
+  var _ref;
+  if (ele.get(0).tagName.toLowerCase() === "input") {
+    return (_ref = ele.attr("type")) != null ? _ref : "text";
+  } else {
+    return ele.prop("type");
   }
-  return type;
 };
 
 isCheckableElement = function(ele) {
@@ -411,7 +408,7 @@ bindEvent = function(form, inst, immediate) {
     return validateField(inst, inst.fields[$(this).prop("name")]);
   });
   if (immediate === true) {
-    $("[name]:checkbox, [name]:radio", form).on("change.H5F", function() {
+    $("[name]:checkbox, [name]:radio, select[name]", form).on("change.H5F", function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
     $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change.H5F" : "input.H5F"), function() {
@@ -456,7 +453,7 @@ Form = (function() {
     this.novalidate = form.hasAttribute("novalidate");
     this.invalidCount = 0;
     initCount++;
-    $("[name]:not(select, [type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
+    $("[name]:not([type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
       var ipt, name;
       ipt = $(this);
       name = ipt.prop("name");

@@ -26,12 +26,10 @@ ERROR =
   SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
 
 # 表单元素类型
+# 在不支持 HTML5 中所定义的 type 值的浏览器中只能通过 $.fn.attr 来获取到真正的字符串
+# 否则，通过 $.fn.prop 获取到的都是 "text"
 elementType = ( ele ) ->
-  switch ele.get(0).tagName.toLowerCase()
-    when "textarea" then type = "textarea"
-    when "input" then type = ele.attr("type") ? "text"
-
-  return type
+  return if ele.get(0).tagName.toLowerCase() is "input" then ele.attr("type") ? "text" else ele.prop "type"
 
 # 是否为成组的表单元素
 isCheckableElement = ( ele ) ->
