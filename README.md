@@ -9,7 +9,7 @@
 * `min` - 数字等的最小值
 * `max` - 数字等的最大值
 
-与表单相关的 HTML 标签有很多，但常用的与构造表单数据有关的是 `<input>`、`<textarea>` 和 `<select>`。其中 `<input>` 的行为根据 `type` 值的不同而多变，本插件目前仅支持了一部分：
+与表单相关的 HTML 标签有很多，但常用的与构造表单数据有关的是 `<input>`、`<textarea>` 和 `<select>`，本插件只对它们进行处理。其中 `<input>` 的行为根据 `type` 值的不同而多变，本插件目前仅支持了一部分：
 
 * `text`
 * `search`
@@ -21,17 +21,15 @@
 * `checkbox`
 * `radio`
 
-**本插件只对有必要进行验证的 HTML 标签进行处理。**除了 `<input>`，还支持 `<textarea>` 和 `<select>`。
-
-## Usage
+## 使用方法
 
 按照以下步骤进行操作，就能简单地使用本插件的基本功能：
 
 1. 引入 [1.8.0](https://github.com/jquery/jquery/releases) 以上版本的 [jQuery](http://jquery.com/)；
 2. 使用 IE 8 及以上或其他现代浏览器；
-3. 在 `<form>` 被加载后运行 JS 代码 `H5F.init(form);`。
+3. 在 `<form>` 被加载后运行 JS 代码 `H5F.init(forms)`。
 
-## Limitation
+## 限制条件
 
 在使用本插件时需要遵守几个条件：
 
@@ -68,48 +66,70 @@
 </form>
 ```
 
-## Settings
+## 参数设置
 
-### 验证方式
+本插件能够通过在运行 JS 代码 `H5F.init()` 时传入参数，或者在 HTML 标签上加上 `data-h5f-*` 属性来控制字段的验证行为。
 
-程序默认在表单提交时对输入字段进行验证，也可以指定在输入文本后立即对其进行验证。
+### JS 参数
 
-##### 方式一
+`H5F.init()` 方法接受两个参数：
+
+1. 初始化的目标，即表单，可以是一个也可以是个集合；
+2. 额外设置，目前仅能用来指定表单的验证方式（默认为提交时验证，可以改为字段的值改变后立即验证）。
+
+通常只需运行 `H5F.init(forms)` 就可以了，然而想要改变一些行为时就需要传入第二个参数，如下：
 
 ```javascript
+// 将验证方式改为字段的值改变后立即验证
 H5F.init($("form"), {immediate: true});
 ```
 
-##### 方式二
+### HTML 属性
+
+##### 表单
+
+`data-h5f-immediate` 同样是用来改变验证方式，但是优先级比 JS 参数传递的高。
 
 ```html
 <form data-h5f-immediate="true"></form>
 ```
 
-**其中，第二种方式比第一种优先级高。**
-
-### 阻止验证
+`data-h5f-novalidate` 用来忽略表单验证。
 
 ```html
 <form data-h5f-novalidate="true"></form>
 ```
 
-### Associate with other field
+##### 字段
 
-利用 `data-h5f-associate` 属性与其他字段元素进行关联，使其值必须与被关联的字段元素相同。
+`data-h5f-required` 用于指定一组 `checkbox` 是否至少得选择一个，只需在一个 `checkbox` 上添加。
+
+```html
+<label><input type="checkbox" name="favorite_fruit" value="melon" required> 瓜</label>
+<label><input type="checkbox" name="favorite_fruit" value="pear" data-h5f-required="true"> 梨</label>
+```
+
+`data-h5f-label` 用于设置在错误信息中显示的标签文本，默认为对应 `<label>` 的文本。
+
+```html
+<label for="name">姓名</label>
+<input id="name" type="text" name="name" required data-h5f-label="真实姓名">
+```
+
+`data-h5f-associate` 用于与其他字段元素进行关联，使其值必须与被关联的字段元素相同。
 
 ```html
 <div>
   <label for="password">密码</label>
-  <input id="password" type="password" value="" name="password" required="required">
+  <input id="password" type="password" name="password" required>
 </div>
 <div>
   <label for="password_confirmation">确认密码</label>
-  <input id="password_confirmation" type="password" value="" name="password_confirmation" data-h5f-associate="password">
+  <input id="password_confirmation" type="password" name="password_confirmation" data-h5f-associate="password">
 </div>
 ```
 
-## More
+## 了解更多
 
 * [APIs](/docs/APIs.md)
 * [Error messages](/docs/errors.md)
