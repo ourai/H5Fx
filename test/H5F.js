@@ -16,11 +16,19 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
-  version: "0.1.0"
+  version: "0.1.1"
+};
+
+hasAttr = function(ele, attr) {
+  return ele.hasAttribute(attr);
+};
+
+toNum = function(str) {
+  return parseFloat(str);
 };
 
 PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}";
@@ -55,18 +63,6 @@ elementType = function(ele) {
   } else {
     return ele.prop("type");
   }
-};
-
-isCheckableElement = function(ele) {
-  return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) !== -1;
-};
-
-hasAttr = function(ele, attr) {
-  return ele.hasAttribute(attr);
-};
-
-toNum = function(str) {
-  return parseFloat(str);
 };
 
 getExtremum = function(ele, type) {
@@ -264,8 +260,9 @@ Field = (function() {
     this.form = form.get(0);
     this.type = elementType(ele);
     this.name = ele.prop("name");
+    this.__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) !== -1;
     this.__validations = [];
-    if (isCheckableElement(ele)) {
+    if (this.__checkable) {
       elements = $("[name='" + this.name + "']", form);
       requiredElements = elements.closest(requiredAttr(this.type));
       this.element = $.makeArray(elements);
@@ -290,7 +287,7 @@ Field = (function() {
   }
 
   Field.prototype.value = function() {
-    if (isCheckableElement(this.element)) {
+    if (this.__checkable) {
       return $("[name='" + this.name + "']:checked", $(this.form)).val();
     } else {
       return $(this.element).val();
@@ -392,10 +389,10 @@ validateOtherFields = function(inst, immediate) {
   return $.each(inst.sequence, function(idx, name) {
     var ele, field;
     field = inst.fields[name];
-    if (!immediate) {
+    ele = field.element;
+    if (hasAttr(ele, "data-h5f-associate") || !immediate) {
       field.validated = false;
     }
-    ele = field.element;
     if (field.validated === false) {
       $($.isArray(ele) ? ele[0] : ele).trigger(EVENT.VALIDATE);
     }
@@ -450,7 +447,7 @@ Form = (function() {
     var inst;
     inst = this;
     this.form = form;
-    this.novalidate = form.hasAttribute("novalidate");
+    this.novalidate = hasAttr(form, "novalidate");
     this.invalidCount = 0;
     initCount++;
     $("[name]:not([type='hidden'], " + subBtnSels + ")", $(form)).each(function() {

@@ -39,8 +39,9 @@ validateField = ( form, field ) ->
 validateOtherFields = ( inst, immediate ) ->
   $.each inst.sequence, ( idx, name ) ->
     field = inst.fields[name]
-    field.validated = false if not immediate
     ele = field.element
+    
+    field.validated = false if hasAttr(ele, "data-h5f-associate") or not immediate
 
     $(if $.isArray(ele) then ele[0] else ele).trigger(EVENT.VALIDATE) if field.validated is false
 
@@ -92,7 +93,7 @@ class Form
     inst = @
 
     @form = form
-    @novalidate = form.hasAttribute "novalidate"
+    @novalidate = hasAttr form, "novalidate"
     @invalidCount = 0
 
     initCount++

@@ -31,18 +31,6 @@ ERROR =
 elementType = ( ele ) ->
   return if ele.get(0).tagName.toLowerCase() is "input" then ele.attr("type") ? "text" else ele.prop "type"
 
-# 是否为成组的表单元素
-isCheckableElement = ( ele ) ->
-  return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) isnt -1
-
-# 是否拥有某个 HTML 属性
-hasAttr = ( ele, attr ) ->
-  return ele.hasAttribute attr
-
-# 转换为数字
-toNum = ( str ) ->
-  return parseFloat str
-
 # 获取极值
 getExtremum = ( ele, type ) ->
   return if $.isNumeric(val = $(ele).prop type) then toNum(val) else null
@@ -212,9 +200,10 @@ class Field
     @type = elementType ele
     @name = ele.prop "name"
 
+    @__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) isnt -1
     @__validations = []
 
-    if isCheckableElement(ele)
+    if @__checkable
       elements = $("[name='#{@name}']", form)
       requiredElements = elements.closest requiredAttr(@type)
 
@@ -241,7 +230,7 @@ class Field
   # 获取字段的值
   # 如果是 radio 或 checkbox 等则值为被选中的对象的
   value: ->
-    return if isCheckableElement(@element) then $("[name='#{@name}']:checked", $(@form)).val() else $(@element).val()
+    return if @__checkable then $("[name='#{@name}']:checked", $(@form)).val() else $(@element).val()
 
   reset: reset
 
