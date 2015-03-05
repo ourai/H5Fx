@@ -1,6 +1,6 @@
 # H5F
 
-这是一个基于 [HTML5 Forms](https://html.spec.whatwg.org/multipage/forms.html) 规范的表单验证插件，即输入字段的值受标准的 HTML5 属性制约，如：
+这是一个基于 [HTML5 Forms](http://www.w3.org/TR/html5/forms.html) 规范的表单验证插件，即输入字段的值受标准的 HTML5 属性制约，如：
 
 * `required` - 必填
 * `pattern` - 字符串的模式
