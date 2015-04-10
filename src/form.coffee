@@ -40,10 +40,11 @@ validateOtherFields = ( inst, immediate ) ->
   $.each inst.sequence, ( idx, name ) ->
     field = inst.fields[name]
     ele = field.element
+    checkable = field.__checkable
     
-    field.validated = false if hasAttr(ele, "data-h5f-associate") or not immediate
+    field.validated = false if (not checkable and hasAttr(ele, "data-h5f-associate")) or not immediate
 
-    $(if $.isArray(ele) then ele[0] else ele).trigger(EVENT.VALIDATE) if field.validated is false
+    $(if checkable then ele[0] else ele).trigger(EVENT.VALIDATE) if field.validated is false
 
     return true
 
@@ -121,6 +122,8 @@ class Form
   # 添加额外的验证
   addValidation: ( fieldName, opts ) ->
     return @fields[fieldName]?.addValidation opts
+
+  @RULES = $.extend true, {}, RULE
 
   @version = LIB_CONFIG.version
 

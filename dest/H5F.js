@@ -387,14 +387,15 @@ validateField = function(form, field) {
 
 validateOtherFields = function(inst, immediate) {
   return $.each(inst.sequence, function(idx, name) {
-    var ele, field;
+    var checkable, ele, field;
     field = inst.fields[name];
     ele = field.element;
-    if (hasAttr(ele, "data-h5f-associate") || !immediate) {
+    checkable = field.__checkable;
+    if ((!checkable && hasAttr(ele, "data-h5f-associate")) || !immediate) {
       field.validated = false;
     }
     if (field.validated === false) {
-      $($.isArray(ele) ? ele[0] : ele).trigger(EVENT.VALIDATE);
+      $(checkable ? ele[0] : ele).trigger(EVENT.VALIDATE);
     }
     return true;
   });
@@ -479,6 +480,8 @@ Form = (function() {
     var _ref;
     return (_ref = this.fields[fieldName]) != null ? _ref.addValidation(opts) : void 0;
   };
+
+  Form.RULES = $.extend(true, {}, RULE);
 
   Form.version = LIB_CONFIG.version;
 
