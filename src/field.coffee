@@ -4,7 +4,7 @@ RULE =
   ABSOLUTE_URL: /^.*$/
   # from https://html.spec.whatwg.org/multipage/forms.html#e-mail-state-(type=email)
   EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-  NUMBER: /^\d+(\.0+)?$/
+  NUMBER: /^(\-)?\d+(\.\d+)?$/
 
 ERROR =
   UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}."

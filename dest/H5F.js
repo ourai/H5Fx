@@ -36,7 +36,7 @@ PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}";
 RULE = {
   ABSOLUTE_URL: /^.*$/,
   EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-  NUMBER: /^\d+(\.0+)?$/
+  NUMBER: /^(\-)?\d+(\.\d+)?$/
 };
 
 ERROR = {
