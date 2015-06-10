@@ -1,10 +1,39 @@
 # API
 
+##### 初始化
+
+```js
+H5F.init();
+```
+
+##### 自定义验证规则
+
+```js
+H5F.rules();
+```
+
+##### 自定义错误信息
+
+```javascript
+H5F.errors({
+  LENGTH_SMALLER_THAN_MINIMUM: "{{LABEL}}不能少于{{MINLENGTH}}个字"
+  LENGTH_BIGGER_THAN_MAXIMUM: "{{LABEL}}不能多于{{MAXLENGTH}}个字"
+  UNDERFLOW: "{{LABEL}}不能小于{{MIN}}"
+  OVERFLOW: "{{LABEL}}不能大于{{MAX}}"
+});
+```
+
 ##### 获取指定表单的 `H5F` 实例
 
 ```javascript
 // "H5F-form" 存储的是已经初始化的表单所对应的 `H5F` 实例的 ID
 var h5f = H5F.get($("form").data("H5F-form"));
+```
+
+##### 添加要验证的字段
+
+```js
+h5f.addField();
 ```
 
 ##### 添加额外的验证
@@ -21,13 +50,8 @@ h5f.addValidation("field", {
 });
 ```
 
-##### 自定义错误信息
+##### 销毁制定表单的 `H5F` 实例
 
-```javascript
-H5F.errors({
-  LENGTH_SMALLER_THAN_MINIMUM: "{{LABEL}}不能少于{{MINLENGTH}}个字"
-  LENGTH_BIGGER_THAN_MAXIMUM: "{{LABEL}}不能多于{{MAXLENGTH}}个字"
-  UNDERFLOW: "{{LABEL}}不能小于{{MIN}}"
-  OVERFLOW: "{{LABEL}}不能大于{{MAX}}"
-});
+```js
+H5F.destroy(h5f);
 ```
