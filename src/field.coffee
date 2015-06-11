@@ -270,3 +270,7 @@ class Field
   # 获取验证的有效状态
   isEnabled: ->
     return @__enabled is true
+
+  # 获取字段的有效状态
+  isValid: ->
+    return @valid is true

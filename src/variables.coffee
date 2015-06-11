@@ -27,9 +27,9 @@ ERROR =
 
 EVENT =
   # 表单
-  BEFORE_VALIDATE: "H5F:beforeValidate"
   SUBMIT: "H5F:submit"
   DESTROY: "H5F:destroy"
+  BEFORE_VALIDATE: "H5F:beforeValidate"
   # 字段
   VALIDATE: "H5F:validate"
   VALID: "H5F:valid"
