@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, clearFieldStatus, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, setDefaultValue, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, fieldProps, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, resetDefaultValue, resetFieldStatus, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -49,9 +49,9 @@ ERROR = {
 };
 
 EVENT = {
-  BEFORE_VALIDATE: "H5F:beforeValidate",
   SUBMIT: "H5F:submit",
   DESTROY: "H5F:destroy",
+  BEFORE_VALIDATE: "H5F:beforeValidate",
   VALIDATE: "H5F:validate",
   VALID: "H5F:valid",
   INVALID: "H5F:invalid",
@@ -65,6 +65,43 @@ hasAttr = function(ele, attr) {
 
 toNum = function(str) {
   return parseFloat(str);
+};
+
+fieldProps = function(ele) {
+  var elements, form, requiredElements;
+  ele = $(ele);
+  form = ele.closest("form").eq(0);
+  this.form = form.get(0);
+  this.type = elementType(ele);
+  this.name = ele.prop("name");
+  this.__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) !== -1;
+  this.__validations = [];
+  this.__enabled = true;
+  if (this.__checkable) {
+    elements = $("[name='" + this.name + "']", form);
+    requiredElements = elements.closest(requiredAttr(this.type));
+    this.__defaultValue = elements.closest(":checked");
+    this.element = $.makeArray(elements);
+    this.required = requiredElements.size() > 0;
+    this.label = fieldLabel((this.required ? requiredElements.eq(0) : $(this.element[0])), form);
+    this.validate = validateCheckableElements;
+  } else {
+    this.element = ele.get(0);
+    this.required = hasAttr(this.element, "required");
+    this.label = fieldLabel(ele, form);
+    if (this.element.tagName.toLowerCase() === "select") {
+      this.__defaultValue = $(":selected", ele);
+      this.validate = validateSelectElement;
+    } else {
+      this.__defaultValue = ele.val();
+      this.validate = validateTextualElements;
+      this.pattern = ele.attr("pattern");
+    }
+    if (this.required) {
+      labelElement(ele, form).addClass("H5F-label--required");
+    }
+  }
+  return reset.call(this);
 };
 
 elementType = function(ele) {
@@ -115,12 +152,24 @@ reset = function() {
   this.message = "";
 };
 
-setDefaultValue = function() {};
+resetDefaultValue = function() {
+  var elem;
+  elem = $(this.element);
+  if (this.__checkable) {
+    elem.closest(":checked").prop("checked", false);
+    $(this.__defaultValue).prop("checked", true);
+  } else if (this.element.tagName.toLowerCase() === "select") {
+    $(":selected", elem).prop("selected", false);
+    $(this.__defaultValue).prop("selected", true);
+  } else {
+    elem.val(this.__defaultValue);
+  }
+};
 
-clearFieldStatus = function() {
+resetFieldStatus = function() {
   this.validated = false;
   reset.call(this);
-  setDefaultValue();
+  resetDefaultValue.call(this);
 };
 
 triggerValidityEvent = function(field, ele) {
@@ -272,39 +321,13 @@ validateCheckableElements = function() {
 };
 
 Field = (function() {
-  function Field(ele) {
-    var elements, form, requiredElements;
-    ele = $(ele);
-    form = ele.closest("form").eq(0);
-    this.form = form.get(0);
-    this.type = elementType(ele);
-    this.name = ele.prop("name");
-    this.__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) !== -1;
-    this.__validations = [];
-    this.__enabled = true;
-    if (this.__checkable) {
-      elements = $("[name='" + this.name + "']", form);
-      requiredElements = elements.closest(requiredAttr(this.type));
-      this.element = $.makeArray(elements);
-      this.required = requiredElements.size() > 0;
-      this.label = fieldLabel((this.required ? requiredElements.eq(0) : $(this.element[0])), form);
-      this.validate = validateCheckableElements;
-    } else {
-      this.element = ele.get(0);
-      this.required = hasAttr(this.element, "required");
-      this.label = fieldLabel(ele, form);
-      if (this.element.tagName.toLowerCase() === "select") {
-        this.validate = validateSelectElement;
-      } else {
-        this.validate = validateTextualElements;
-        this.pattern = ele.attr("pattern");
-      }
-      if (this.required) {
-        labelElement(ele, form).addClass("H5F-label--required");
-      }
-    }
-    reset.call(this);
+  var _class;
+
+  function Field() {
+    return _class.apply(this, arguments);
   }
+
+  _class = fieldProps;
 
   Field.prototype.value = function() {
     if (this.__checkable) {
@@ -361,19 +384,37 @@ Field = (function() {
 
   Field.prototype.disableValidation = function() {
     this.__enabled = false;
-    clearFieldStatus.call(this);
+    resetFieldStatus.call(this);
     $(this.element).trigger(EVENT.DISABLED);
     return this;
   };
 
-  Field.prototype.enableValidation = function() {
+
+  /*
+   * 使验证有效
+   * 
+   * @method  enableValidation
+   * @param   [validate] {Boolean}       是否立即对字段进行验证
+   * @return  {Object}
+   */
+
+  Field.prototype.enableValidation = function(validate) {
+    var _elem;
+    _elem = this.element;
     this.__enabled = true;
-    $(this.element).trigger(EVENT.ENABLED);
+    $(_elem).trigger(EVENT.ENABLED);
+    if (validate === true) {
+      $(this.__checkable ? _elem[0] : _elem).trigger(EVENT.VALIDATE);
+    }
     return this;
   };
 
   Field.prototype.isEnabled = function() {
     return this.__enabled === true;
+  };
+
+  Field.prototype.isValid = function() {
+    return this.valid === true;
   };
 
   return Field;
@@ -521,9 +562,9 @@ Form = (function() {
     return (_ref = this.fields[fieldName]) != null ? _ref.disableValidation() : void 0;
   };
 
-  Form.prototype.enableValidation = function(fieldName) {
+  Form.prototype.enableValidation = function(fieldName, validate) {
     var _ref;
-    return (_ref = this.fields[fieldName]) != null ? _ref.enableValidation() : void 0;
+    return (_ref = this.fields[fieldName]) != null ? _ref.enableValidation(validate) : void 0;
   };
 
   Form.RULES = $.extend(true, {}, RULE);

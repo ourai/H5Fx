@@ -1,3 +1,46 @@
+# 初始化字段属性
+fieldProps = ( ele ) ->
+  ele = $ ele
+  form = ele.closest("form").eq(0)
+
+  @form = form.get 0
+  @type = elementType ele
+  @name = ele.prop "name"
+
+  @__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) isnt -1
+  @__validations = []
+  @__enabled = true
+
+  if @__checkable
+    elements = $("[name='#{@name}']", form)
+    requiredElements = elements.closest requiredAttr(@type)
+
+    @__defaultValue = elements.closest ":checked"
+
+    @element = $.makeArray elements
+    @required = requiredElements.size() > 0
+    @label = fieldLabel (if @required then requiredElements.eq(0) else $(@element[0])), form
+
+    @validate = validateCheckableElements
+  else
+    @element = ele.get 0
+    @required = hasAttr @element, "required"
+    @label = fieldLabel ele, form
+
+    if @element.tagName.toLowerCase() is "select"
+      @__defaultValue = $(":selected", ele)
+
+      @validate = validateSelectElement
+    else
+      @__defaultValue = ele.val()
+
+      @validate = validateTextualElements
+      @pattern = ele.attr "pattern"
+
+    labelElement(ele, form).addClass("H5F-label--required") if @required
+
+  reset.call @
+
 # 表单元素类型
 # 在不支持 HTML5 中所定义的 type 值的浏览器中只能通过 $.fn.attr 来获取到真正的字符串
 # 否则，通过 $.fn.prop 获取到的都是 "text"
@@ -34,16 +77,26 @@ reset = ->
   return
 
 # 将字段恢复到初始值
-setDefaultValue = ->
-  # 字段在初始化的时候应该把默认值保存下来
-  # 重置时根据不同类型的字段元素来设置值
+resetDefaultValue = ->
+  elem = $ @element
+
+  if @__checkable
+    elem.closest(":checked").prop "checked", false
+    $(@__defaultValue).prop "checked", true
+  else if @element.tagName.toLowerCase() is "select"
+    $(":selected", elem).prop "selected", false
+    $(@__defaultValue).prop "selected", true
+  else
+    elem.val @__defaultValue
+
+  return
 
 # 清除字段状态
-clearFieldStatus = ->
+resetFieldStatus = ->
   @validated = false
 
   reset.call @
-  setDefaultValue()
+  resetDefaultValue.call @
 
   return
 
@@ -179,41 +232,7 @@ validateCheckableElements = ->
   return @valid
 
 class Field
-  constructor: ( ele ) ->
-    ele = $ ele
-    form = ele.closest("form").eq(0)
-
-    @form = form.get 0
-    @type = elementType ele
-    @name = ele.prop "name"
-
-    @__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) isnt -1
-    @__validations = []
-    @__enabled = true
-
-    if @__checkable
-      elements = $("[name='#{@name}']", form)
-      requiredElements = elements.closest requiredAttr(@type)
-
-      @element = $.makeArray elements
-      @required = requiredElements.size() > 0
-      @label = fieldLabel (if @required then requiredElements.eq(0) else $(@element[0])), form
-
-      @validate = validateCheckableElements
-    else
-      @element = ele.get 0
-      @required = hasAttr @element, "required"
-      @label = fieldLabel ele, form
-
-      if @element.tagName.toLowerCase() is "select"
-        @validate = validateSelectElement
-      else
-        @validate = validateTextualElements
-        @pattern = ele.attr "pattern"
-
-      labelElement(ele, form).addClass("H5F-label--required") if @required
-
-    reset.call @
+  constructor: fieldProps
 
   # 获取字段的值
   # 如果是 radio 或 checkbox 等则值为被选中的对象的
@@ -253,17 +272,25 @@ class Field
   disableValidation: ->
     @__enabled = false
 
-    clearFieldStatus.call @
+    resetFieldStatus.call @
 
     $(@element).trigger EVENT.DISABLED
 
     return @
 
+  ###
   # 使验证有效
-  enableValidation: ->
+  # 
+  # @method  enableValidation
+  # @param   [validate] {Boolean}       是否立即对字段进行验证
+  # @return  {Object}
+  ###
+  enableValidation: ( validate ) ->
+    _elem = @element
     @__enabled = true
 
-    $(@element).trigger EVENT.ENABLED
+    $(_elem).trigger EVENT.ENABLED
+    $(if @__checkable then _elem[0] else _elem).trigger(EVENT.VALIDATE) if validate is true
 
     return @
 

@@ -124,8 +124,8 @@ class Form
     return @fields[fieldName]?.disableValidation()
 
   # 使目标字段验证有效
-  enableValidation: ( fieldName ) ->
-    return @fields[fieldName]?.enableValidation()
+  enableValidation: ( fieldName, validate ) ->
+    return @fields[fieldName]?.enableValidation validate
 
   @RULES = $.extend true, {}, RULE
 
