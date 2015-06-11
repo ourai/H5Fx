@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, clearFieldStatus, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, setDefaultValue, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -113,6 +113,14 @@ associatedElement = function(ele) {
 reset = function() {
   this.valid = true;
   this.message = "";
+};
+
+setDefaultValue = function() {};
+
+clearFieldStatus = function() {
+  this.validated = false;
+  reset.call(this);
+  setDefaultValue();
 };
 
 triggerValidityEvent = function(field, ele) {
@@ -353,6 +361,7 @@ Field = (function() {
 
   Field.prototype.disableValidation = function() {
     this.__enabled = false;
+    clearFieldStatus.call(this);
     $(this.element).trigger(EVENT.DISABLED);
     return this;
   };

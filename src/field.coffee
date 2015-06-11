@@ -33,6 +33,20 @@ reset = ->
 
   return
 
+# 将字段恢复到初始值
+setDefaultValue = ->
+  # 字段在初始化的时候应该把默认值保存下来
+  # 重置时根据不同类型的字段元素来设置值
+
+# 清除字段状态
+clearFieldStatus = ->
+  @validated = false
+
+  reset.call @
+  setDefaultValue()
+
+  return
+
 # 触发有效性事件
 triggerValidityEvent = ( field, ele ) ->  
   return $(ele).trigger (if field.valid then EVENT.VALID else EVENT.INVALID), field
@@ -238,6 +252,8 @@ class Field
   # 使验证失效
   disableValidation: ->
     @__enabled = false
+
+    clearFieldStatus.call @
 
     $(@element).trigger EVENT.DISABLED
 
