@@ -85,6 +85,10 @@ getInstId = ( form ) ->
 
   return id
 
+# 对字段序列重新排序
+reorderSequence = ( idx, name ) ->
+  #
+
 class Form
   constructor: ( form ) ->
     inst = @
@@ -126,6 +130,14 @@ class Form
   # 使目标字段验证有效
   enableValidation: ( fieldName, validate ) ->
     return @fields[fieldName]?.enableValidation validate
+
+  # 更新表单的验证字段列表
+  update: ->
+    $("[name]", form).each ( idx, name ) =>
+      reorderSequence.apply @, [idx, name]
+
+  # 销毁实例
+  destroy: ->
 
   @RULES = $.extend true, {}, RULE
 
