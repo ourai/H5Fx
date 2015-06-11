@@ -71,3 +71,10 @@ $(document).ready ->
   $("#form_2").on "H5F:submit", ->
     console.log "form_2 submit"
     return "form_2"
+
+$(document).on
+  "H5F:enabled": ->
+    console.log @, "enabled"
+  "H5F:disabled": ->
+    console.log @, "disabled"
+  , "[name]"

@@ -1,30 +1,3 @@
-PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}"
-
-RULE =
-  ABSOLUTE_URL: /^.*$/
-  # from https://html.spec.whatwg.org/multipage/forms.html#e-mail-state-(type=email)
-  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-  NUMBER: /^(\-)?\d+(\.\d+)?$/
-
-ERROR =
-  UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}."
-  # For textual elements
-  COULD_NOT_BE_EMPTY: "{{LABEL}} could not be empty."
-  LENGTH_SMALLER_THAN_MINIMUM: "The length of {{LABEL}} is smaller than {{MINLENGTH}}."
-  LENGTH_BIGGER_THAN_MAXIMUM: "The length of {{LABEL}} is bigger than {{MAXLENGTH}}."
-  INVALID_VALUE: "{{LABEL}}'s value is invalid."
-  NOT_AN_ABSOLUTE_URL: "{{LABEL}} isn't an absolute URL."
-  NOT_AN_EMAIL: "{{LABEL}} isn't an E-mail."
-  NOT_A_NUMBER: "{{LABEL}} isn't a number."
-  UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}."
-  OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}."
-  DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}."
-  # For checkable elements
-  AT_LEAST_CHOOSE_ONE: "At least choose an option from {{LABEL}}."
-  SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen."
-  # For select
-  SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
-
 # 表单元素类型
 # 在不支持 HTML5 中所定义的 type 值的浏览器中只能通过 $.fn.attr 来获取到真正的字符串
 # 否则，通过 $.fn.prop 获取到的都是 "text"
@@ -61,8 +34,8 @@ reset = ->
   return
 
 # 触发有效性事件
-triggerEvent = ( field, ele ) ->
-  return $(ele).trigger "H5F:#{if field.valid then "valid" else "invalid"}", field
+triggerValidityEvent = ( field, ele ) ->  
+  return $(ele).trigger (if field.valid then EVENT.VALID else EVENT.INVALID), field
 
 # 获取必填可选择字段的属性选择器
 requiredAttr = ( isCheckbox ) ->
@@ -143,7 +116,7 @@ validateTextualElements = ->
 
         return @valid
 
-  triggerEvent @, ele
+  triggerValidityEvent @, ele
 
   return @valid
 
@@ -153,7 +126,7 @@ validateSelectElement = ->
     @valid = false
     @message = @error "SHOOLD_CHOOSE_AN_OPTION"
 
-  triggerEvent @, @element
+  triggerValidityEvent @, @element
 
   return @valid
 
@@ -187,7 +160,7 @@ validateCheckableElements = ->
     else
       ele = elements
 
-  triggerEvent @, ele.get(0)
+  triggerValidityEvent @, ele.get(0)
 
   return @valid
 
@@ -202,6 +175,7 @@ class Field
 
     @__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) isnt -1
     @__validations = []
+    @__enabled = true
 
     if @__checkable
       elements = $("[name='#{@name}']", form)
@@ -260,3 +234,23 @@ class Field
     @__validations.push opts
 
     return opts
+
+  # 使验证失效
+  disableValidation: ->
+    @__enabled = false
+
+    $(@element).trigger EVENT.DISABLED
+
+    return @
+
+  # 使验证有效
+  enableValidation: ->
+    @__enabled = true
+
+    $(@element).trigger EVENT.ENABLED
+
+    return @
+
+  # 获取验证的有效状态
+  isEnabled: ->
+    return @__enabled is true

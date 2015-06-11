@@ -2,6 +2,13 @@
 
 ## 0.1.1
 
+#### 2015.06.11
+
+* 添加使目标字段的验证失效的方法 `field.disableValidation()`、`form.disableValidation(fieldName)`
+* 添加使目标字段的验证有效的方法 `field.enableValidation()`、`form.enableValidation(fieldName)`
+* 添加判断目标字段的验证是否有效的方法 `field.isEnabled()`
+* 目标字段可以绑定 `H5F:disabled`、`H5F:enabled` 事件以对失效、有效操作进行反馈
+
 #### 2015.05.21
 
 * 修复验证 `<input type="number">` 的值时不支持负数、小数等（issue #3）

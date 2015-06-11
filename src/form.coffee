@@ -1,11 +1,3 @@
-EVENT =
-  # 表单
-  BEFORE_VALIDATE: "H5F:beforeValidate"
-  SUBMIT: "H5F:submit"
-  DESTROY: "H5F:destroy"
-  # 字段
-  VALIDATE: "H5F:validate"
-
 subBtnSels = ":submit, :image, :reset"
 
 # 默认设置
@@ -44,14 +36,18 @@ validateOtherFields = ( inst, immediate ) ->
     
     field.validated = false if (not checkable and hasAttr(ele, "data-h5f-associate")) or not immediate
 
-    $(if checkable then ele[0] else ele).trigger(EVENT.VALIDATE) if field.validated is false
+    $(if checkable then ele[0] else ele).trigger(EVENT.VALIDATE) if field.isEnabled() and field.validated is false
 
     return true
 
 # 绑定事件
 bindEvent = ( form, inst, immediate ) ->
   $("[name]", form).on EVENT.VALIDATE, ->
-    validateField inst, inst.fields[$(@).prop("name")]
+    f = inst.fields[$(@).prop("name")]
+
+    validateField(inst, f) if f.isEnabled()
+
+    return f
 
   if immediate is true
     $("[name]:checkbox, [name]:radio, select[name]", form).on "change.H5F", ->
@@ -122,6 +118,14 @@ class Form
   # 添加额外的验证
   addValidation: ( fieldName, opts ) ->
     return @fields[fieldName]?.addValidation opts
+
+  # 使目标字段验证失效
+  disableValidation: ( fieldName ) ->
+    return @fields[fieldName]?.disableValidation()
+
+  # 使目标字段验证有效
+  enableValidation: ( fieldName ) ->
+    return @fields[fieldName]?.enableValidation()
 
   @RULES = $.extend true, {}, RULE
 

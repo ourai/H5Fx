@@ -32,6 +32,7 @@ module.exports = ( grunt ) ->
         files:
           "<%= meta.temp %>/<%= pkg.name %>.coffee": [
               "src/intro.coffee"
+              "src/variables.coffee"
               "src/functions.coffee"
               "src/field.coffee"
               "src/form.coffee"

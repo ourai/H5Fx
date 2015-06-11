@@ -16,19 +16,11 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
   version: "0.1.1"
-};
-
-hasAttr = function(ele, attr) {
-  return ele.hasAttribute(attr);
-};
-
-toNum = function(str) {
-  return parseFloat(str);
 };
 
 PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}";
@@ -54,6 +46,25 @@ ERROR = {
   AT_LEAST_CHOOSE_ONE: "At least choose an option from {{LABEL}}.",
   SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen.",
   SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
+};
+
+EVENT = {
+  BEFORE_VALIDATE: "H5F:beforeValidate",
+  SUBMIT: "H5F:submit",
+  DESTROY: "H5F:destroy",
+  VALIDATE: "H5F:validate",
+  VALID: "H5F:valid",
+  INVALID: "H5F:invalid",
+  DISABLED: "H5F:disabled",
+  ENABLED: "H5F:enabled"
+};
+
+hasAttr = function(ele, attr) {
+  return ele.hasAttribute(attr);
+};
+
+toNum = function(str) {
+  return parseFloat(str);
 };
 
 elementType = function(ele) {
@@ -104,8 +115,8 @@ reset = function() {
   this.message = "";
 };
 
-triggerEvent = function(field, ele) {
-  return $(ele).trigger("H5F:" + (field.valid ? "valid" : "invalid"), field);
+triggerValidityEvent = function(field, ele) {
+  return $(ele).trigger((field.valid ? EVENT.VALID : EVENT.INVALID), field);
 };
 
 requiredAttr = function(isCheckbox) {
@@ -202,7 +213,7 @@ validateTextualElements = function() {
       })(this));
     }
   }
-  triggerEvent(this, ele);
+  triggerValidityEvent(this, ele);
   return this.valid;
 };
 
@@ -211,7 +222,7 @@ validateSelectElement = function() {
     this.valid = false;
     this.message = this.error("SHOOLD_CHOOSE_AN_OPTION");
   }
-  triggerEvent(this, this.element);
+  triggerValidityEvent(this, this.element);
   return this.valid;
 };
 
@@ -248,7 +259,7 @@ validateCheckableElements = function() {
       ele = elements;
     }
   }
-  triggerEvent(this, ele.get(0));
+  triggerValidityEvent(this, ele.get(0));
   return this.valid;
 };
 
@@ -262,6 +273,7 @@ Field = (function() {
     this.name = ele.prop("name");
     this.__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) !== -1;
     this.__validations = [];
+    this.__enabled = true;
     if (this.__checkable) {
       elements = $("[name='" + this.name + "']", form);
       requiredElements = elements.closest(requiredAttr(this.type));
@@ -339,16 +351,25 @@ Field = (function() {
     return opts;
   };
 
+  Field.prototype.disableValidation = function() {
+    this.__enabled = false;
+    $(this.element).trigger(EVENT.DISABLED);
+    return this;
+  };
+
+  Field.prototype.enableValidation = function() {
+    this.__enabled = true;
+    $(this.element).trigger(EVENT.ENABLED);
+    return this;
+  };
+
+  Field.prototype.isEnabled = function() {
+    return this.__enabled === true;
+  };
+
   return Field;
 
 })();
-
-EVENT = {
-  BEFORE_VALIDATE: "H5F:beforeValidate",
-  SUBMIT: "H5F:submit",
-  DESTROY: "H5F:destroy",
-  VALIDATE: "H5F:validate"
-};
 
 subBtnSels = ":submit, :image, :reset";
 
@@ -394,7 +415,7 @@ validateOtherFields = function(inst, immediate) {
     if ((!checkable && hasAttr(ele, "data-h5f-associate")) || !immediate) {
       field.validated = false;
     }
-    if (field.validated === false) {
+    if (field.isEnabled() && field.validated === false) {
       $(checkable ? ele[0] : ele).trigger(EVENT.VALIDATE);
     }
     return true;
@@ -403,7 +424,12 @@ validateOtherFields = function(inst, immediate) {
 
 bindEvent = function(form, inst, immediate) {
   $("[name]", form).on(EVENT.VALIDATE, function() {
-    return validateField(inst, inst.fields[$(this).prop("name")]);
+    var f;
+    f = inst.fields[$(this).prop("name")];
+    if (f.isEnabled()) {
+      validateField(inst, f);
+    }
+    return f;
   });
   if (immediate === true) {
     $("[name]:checkbox, [name]:radio, select[name]", form).on("change.H5F", function() {
@@ -479,6 +505,16 @@ Form = (function() {
   Form.prototype.addValidation = function(fieldName, opts) {
     var _ref;
     return (_ref = this.fields[fieldName]) != null ? _ref.addValidation(opts) : void 0;
+  };
+
+  Form.prototype.disableValidation = function(fieldName) {
+    var _ref;
+    return (_ref = this.fields[fieldName]) != null ? _ref.disableValidation() : void 0;
+  };
+
+  Form.prototype.enableValidation = function(fieldName) {
+    var _ref;
+    return (_ref = this.fields[fieldName]) != null ? _ref.enableValidation() : void 0;
   };
 
   Form.RULES = $.extend(true, {}, RULE);

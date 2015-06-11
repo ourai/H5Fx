@@ -67,3 +67,12 @@ $(document).ready(function() {
     return "form_2";
   });
 });
+
+$(document).on({
+  "H5F:enabled": function() {
+    return console.log(this, "enabled");
+  },
+  "H5F:disabled": function() {
+    return console.log(this, "disabled");
+  }
+}, "[name]");
