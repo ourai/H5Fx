@@ -19,10 +19,10 @@ validateField = ( form, field ) ->
   field.validated = true
   
   if field.validate()
-    form.invalidCount = --form.invalidCount if field.__counted is true
+    form.invalidCount-- if field.__counted is true
     field.__counted = false
   else
-    form.invalidCount = ++form.invalidCount if field.__counted isnt true
+    form.invalidCount++ if field.__counted isnt true
     field.__counted = true
 
   return field
@@ -137,8 +137,36 @@ class Form
     $("[name]", form).each ( idx, name ) =>
       reorderSequence.apply @, [idx, name]
 
+  ###
   # 销毁实例
+  # 
+  # @method  destroy
+  # @return  {DOM}
+  ###
   destroy: ->
+    form = $ @form
+
+    # 解绑事件
+    form.off ".H5F"
+    $("[name]", form).off ".H5F"
+
+    $(".H5F-label--required", form).removeClass "H5F-label--required"
+
+    # 恢复表单默认的 HTML5 验证属性
+    if @novalidate
+      form.attr "novalidate", true
+    else
+      form.removeAttr "novalidate"
+
+    # 删除引用
+    delete @constructor.forms[@form["H5F-form"]]
+    delete @form["H5F-form"]
+
+    @constructor.forms.length--
+
+    form.trigger EVENT.DESTROY
+
+    return form.get(0)
 
   @RULES = $.extend true, {}, RULE
 
@@ -181,41 +209,6 @@ class Form
         form.attr "novalidate", true
 
         bindEvent(form, inst, opts.immediate is true) if not form.attr("data-h5f-novalidate")?
-
-  ###
-  # 销毁指定表单实例
-  # 
-  # @method  destroy
-  # @param   form {DOM/jQuery/String}
-  # @return  {Boolean}
-  ###
-  @destroy = ( form ) ->
-    id = getInstId form
-    inst = @forms[id]
-
-    if inst?
-      form = $ inst.form
-
-      form.off ".H5F"
-      $("[name]", form).off ".H5F"
-
-      $(".H5F-label--required", form).removeClass "H5F-label--required"
-
-      if inst.novalidate
-        form.attr "novalidate", true
-      else
-        form.removeAttr "novalidate"
-
-      delete @forms[id]
-      delete inst.form["H5F-form"]
-
-      @forms.length--
-
-      form.trigger EVENT.DESTROY
-
-      return true
-
-    return false
 
   ###
   # 获取指定实例

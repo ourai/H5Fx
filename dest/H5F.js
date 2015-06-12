@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, fieldProps, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, requiredAttr, reset, resetDefaultValue, resetFieldStatus, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, fieldProps, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, reorderSequence, requiredAttr, reset, resetDefaultValue, resetFieldStatus, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -74,9 +74,11 @@ fieldProps = function(ele) {
   this.form = form.get(0);
   this.type = elementType(ele);
   this.name = ele.prop("name");
+  this.__form = null;
+  this.__counted = false;
+  this.__enabled = true;
   this.__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) !== -1;
   this.__validations = [];
-  this.__enabled = true;
   if (this.__checkable) {
     elements = $("[name='" + this.name + "']", form);
     requiredElements = elements.closest(requiredAttr(this.type));
@@ -167,6 +169,7 @@ resetDefaultValue = function() {
 };
 
 resetFieldStatus = function() {
+  this.__counted = false;
   this.validated = false;
   reset.call(this);
   resetDefaultValue.call(this);
@@ -384,6 +387,9 @@ Field = (function() {
 
   Field.prototype.disableValidation = function() {
     this.__enabled = false;
+    if (this.__counted === true) {
+      this.__form.invalidCount--;
+    }
     resetFieldStatus.call(this);
     $(this.element).trigger(EVENT.DISABLED);
     return this;
@@ -400,8 +406,8 @@ Field = (function() {
 
   Field.prototype.enableValidation = function(validate) {
     var _elem;
-    _elem = this.element;
     this.__enabled = true;
+    _elem = this.element;
     $(_elem).trigger(EVENT.ENABLED);
     if (validate === true) {
       $(this.__checkable ? _elem[0] : _elem).trigger(EVENT.VALIDATE);
@@ -443,15 +449,15 @@ validateField = function(form, field) {
   field.reset();
   field.validated = true;
   if (field.validate()) {
-    if (field.counted === true) {
-      form.invalidCount = --form.invalidCount;
+    if (field.__counted === true) {
+      form.invalidCount--;
     }
-    field.counted = false;
+    field.__counted = false;
   } else {
-    if (field.counted !== true) {
-      form.invalidCount = ++form.invalidCount;
+    if (field.__counted !== true) {
+      form.invalidCount++;
     }
-    field.counted = true;
+    field.__counted = true;
   }
   return field;
 };
@@ -519,6 +525,8 @@ getInstId = function(form) {
   return id;
 };
 
+reorderSequence = function(idx, name) {};
+
 Form = (function() {
   function Form(form) {
     var inst;
@@ -545,6 +553,7 @@ Form = (function() {
     }
     name = field.name;
     if (this.fields[name] == null) {
+      field.__form = this;
       field.validated = false;
       this.fields[name] = field;
       this.sequence.push(name);
@@ -565,6 +574,40 @@ Form = (function() {
   Form.prototype.enableValidation = function(fieldName, validate) {
     var _ref;
     return (_ref = this.fields[fieldName]) != null ? _ref.enableValidation(validate) : void 0;
+  };
+
+  Form.prototype.update = function() {
+    return $("[name]", form).each((function(_this) {
+      return function(idx, name) {
+        return reorderSequence.apply(_this, [idx, name]);
+      };
+    })(this));
+  };
+
+
+  /*
+   * 销毁实例
+   * 
+   * @method  destroy
+   * @return  {DOM}
+   */
+
+  Form.prototype.destroy = function() {
+    var form;
+    form = $(this.form);
+    form.off(".H5F");
+    $("[name]", form).off(".H5F");
+    $(".H5F-label--required", form).removeClass("H5F-label--required");
+    if (this.novalidate) {
+      form.attr("novalidate", true);
+    } else {
+      form.removeAttr("novalidate");
+    }
+    delete this.constructor.forms[this.form["H5F-form"]];
+    delete this.form["H5F-form"];
+    this.constructor.forms.length--;
+    form.trigger(EVENT.DESTROY);
+    return form.get(0);
   };
 
   Form.RULES = $.extend(true, {}, RULE);
@@ -608,38 +651,6 @@ Form = (function() {
         }
       }
     });
-  };
-
-
-  /*
-   * 销毁指定表单实例
-   * 
-   * @method  destroy
-   * @param   form {DOM/jQuery/String}
-   * @return  {Boolean}
-   */
-
-  Form.destroy = function(form) {
-    var id, inst;
-    id = getInstId(form);
-    inst = this.forms[id];
-    if (inst != null) {
-      form = $(inst.form);
-      form.off(".H5F");
-      $("[name]", form).off(".H5F");
-      $(".H5F-label--required", form).removeClass("H5F-label--required");
-      if (inst.novalidate) {
-        form.attr("novalidate", true);
-      } else {
-        form.removeAttr("novalidate");
-      }
-      delete this.forms[id];
-      delete inst.form["H5F-form"];
-      this.forms.length--;
-      form.trigger(EVENT.DESTROY);
-      return true;
-    }
-    return false;
   };
 
 

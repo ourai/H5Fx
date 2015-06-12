@@ -2,6 +2,10 @@
 
 ## 0.1.1
 
+#### 2015.06.12
+
+* 移除 `H5F.destroy` 并添加 `H5F.prototype.destroy`
+
 #### 2015.06.11
 
 * 添加使目标字段的验证失效的方法 `field.disableValidation()`、`form.disableValidation(fieldName)`

@@ -95,6 +95,7 @@ resetDefaultValue = ->
 
 # 清除字段状态
 resetFieldStatus = ->
+  @__counted = false
   @validated = false
 
   reset.call @
@@ -272,9 +273,8 @@ class Field
 
   # 使验证失效
   disableValidation: ->
-    @__form.invalidCount = --@__form.invalidCount if @__counted is true
-    @__counted = false
     @__enabled = false
+    @__form.invalidCount-- if @__counted is true
 
     resetFieldStatus.call @
 
@@ -290,8 +290,8 @@ class Field
   # @return  {Object}
   ###
   enableValidation: ( validate ) ->
-    _elem = @element
     @__enabled = true
+    _elem = @element
 
     $(_elem).trigger EVENT.ENABLED
     $(if @__checkable then _elem[0] else _elem).trigger(EVENT.VALIDATE) if validate is true
