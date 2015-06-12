@@ -7,9 +7,11 @@ fieldProps = ( ele ) ->
   @type = elementType ele
   @name = ele.prop "name"
 
+  @__form = null
+  @__counted = false
+  @__enabled = true
   @__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) isnt -1
   @__validations = []
-  @__enabled = true
 
   if @__checkable
     elements = $("[name='#{@name}']", form)
@@ -270,6 +272,8 @@ class Field
 
   # 使验证失效
   disableValidation: ->
+    @__form.invalidCount = --@__form.invalidCount if @__counted is true
+    @__counted = false
     @__enabled = false
 
     resetFieldStatus.call @

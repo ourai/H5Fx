@@ -19,11 +19,11 @@ validateField = ( form, field ) ->
   field.validated = true
   
   if field.validate()
-    form.invalidCount = --form.invalidCount if field.counted is true
-    field.counted = false
+    form.invalidCount = --form.invalidCount if field.__counted is true
+    field.__counted = false
   else
-    form.invalidCount = ++form.invalidCount if field.counted isnt true
-    field.counted = true
+    form.invalidCount = ++form.invalidCount if field.__counted isnt true
+    field.__counted = true
 
   return field
 
@@ -112,6 +112,7 @@ class Form
     name = field.name
 
     if not @fields[name]?
+      field.__form = @
       field.validated = false
 
       @fields[name] = field
