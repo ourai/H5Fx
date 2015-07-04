@@ -26,9 +26,18 @@ LIB_CONFIG = {
 PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}";
 
 RULE = {
-  ABSOLUTE_URL: /^.*$/,
-  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-  NUMBER: /^(\-)?\d+(\.\d+)?$/
+  ABSOLUTE_URL: {
+    rule: /^.*$/,
+    message: "NOT_AN_ABSOLUTE_URL"
+  },
+  EMAIL: {
+    rule: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+    message: "NOT_AN_EMAIL"
+  },
+  NUMBER: {
+    rule: /^(\-)?\d+(\.\d+)?$/,
+    message: "NOT_A_NUMBER"
+  }
 };
 
 ERROR = {
@@ -211,14 +220,14 @@ validateTextualElements = function() {
         } else {
           if (val !== "") {
             if (this.type === "url") {
-              this.valid = RULE.ABSOLUTE_URL.test(val);
+              this.valid = RULE.ABSOLUTE_URL.rule.test(val);
               if (!this.valid) {
-                this.message = this.error("NOT_AN_ABSOLUTE_URL");
+                this.message = this.error(RULE.ABSOLUTE_URL.message);
               }
             } else if (this.type === "email") {
-              this.valid = RULE.EMAIL.test(val);
+              this.valid = RULE.EMAIL.rule.test(val);
               if (!this.valid) {
-                this.message = this.error("NOT_AN_EMAIL");
+                this.message = this.error(RULE.EMAIL.message);
               }
             }
           }
@@ -232,7 +241,7 @@ validateTextualElements = function() {
         break;
       case "number":
         if (val !== "") {
-          this.valid = RULE.NUMBER.test(val);
+          this.valid = RULE.NUMBER.rule.test(val);
           if (this.valid) {
             minVal = getExtremum(ele, "min");
             maxVal = getExtremum(ele, "max");
@@ -244,7 +253,7 @@ validateTextualElements = function() {
               this.message = this.error("OVERFLOW");
             }
           } else {
-            this.message = this.error("NOT_A_NUMBER");
+            this.message = this.error(RULE.NUMBER.message);
           }
         }
         break;
@@ -671,7 +680,7 @@ Form = (function() {
   };
 
   Form.rules = function(rules) {
-    return $.extend(RULE, rules);
+    return (this.RULES = $.extend(true, {}, $.extend(RULE, rules)));
   };
 
   return Form;

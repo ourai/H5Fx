@@ -138,12 +138,12 @@ validateTextualElements = ->
           if val isnt ""
             # URL
             if @type is "url"
-              @valid = RULE.ABSOLUTE_URL.test val
-              @message = @error("NOT_AN_ABSOLUTE_URL") if not @valid
+              @valid = RULE.ABSOLUTE_URL.rule.test val
+              @message = @error(RULE.ABSOLUTE_URL.message) if not @valid
             # E-mail
             else if @type is "email"
-              @valid = RULE.EMAIL.test val
-              @message = @error("NOT_AN_EMAIL") if not @valid
+              @valid = RULE.EMAIL.rule.test val
+              @message = @error(RULE.EMAIL.message) if not @valid
 
           # 自定义
           if @valid and @pattern? and @pattern isnt ""
@@ -151,7 +151,7 @@ validateTextualElements = ->
             @message = @error("INVALID_VALUE") if not @valid
       when "number"
         if val isnt ""
-          @valid = RULE.NUMBER.test val
+          @valid = RULE.NUMBER.rule.test val
 
           if @valid
             minVal = getExtremum ele, "min"
@@ -166,7 +166,7 @@ validateTextualElements = ->
               @valid = false
               @message = @error "OVERFLOW"
           else
-            @message = @error "NOT_A_NUMBER"
+            @message = @error RULE.NUMBER.message
       else
         @message = @error "UNKNOWN_INPUT_TYPE"
 

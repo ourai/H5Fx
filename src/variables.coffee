@@ -1,10 +1,16 @@
 PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}"
 
 RULE =
-  ABSOLUTE_URL: /^.*$/
+  ABSOLUTE_URL:
+    rule: /^.*$/
+    message: "NOT_AN_ABSOLUTE_URL"
   # from https://html.spec.whatwg.org/multipage/forms.html#e-mail-state-(type=email)
-  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-  NUMBER: /^(\-)?\d+(\.\d+)?$/
+  EMAIL:
+    rule: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+    message: "NOT_AN_EMAIL"
+  NUMBER:
+    rule: /^(\-)?\d+(\.\d+)?$/
+    message: "NOT_A_NUMBER"
 
 ERROR =
   UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}."

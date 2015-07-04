@@ -226,4 +226,4 @@ class Form
 
   # 自定义验证规则
   @rules = ( rules ) ->
-    return $.extend RULE, rules
+    return (@RULES = $.extend(true, {}, $.extend(RULE, rules)))
