@@ -16,7 +16,14 @@ $(document).ready(function() {
     DIFFERENT_VALUE: "{{LABEL}}的值没有与{{ASSOCIATE_LABEL}}保持一致",
     AT_LEAST_CHOOSE_ONE: "请从{{LABEL}}中选择一项",
     SHOOLD_BE_CHOSEN: "请选中{{UNIT_LABEL}}",
-    SHOOLD_CHOOSE_AN_OPTION: "必须从{{LABEL}}中选择一项"
+    SHOOLD_CHOOSE_AN_OPTION: "必须从{{LABEL}}中选择一项",
+    NOT_A_MOBILE: "{{LABEL}}不是一个手机号码"
+  });
+  H5F.rules({
+    MOBILE: {
+      rule: /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/,
+      message: "NOT_A_MOBILE"
+    }
   });
   $("[name]").on({
     "H5F:valid": function(e, field) {

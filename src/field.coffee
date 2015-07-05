@@ -147,8 +147,16 @@ validateTextualElements = ->
 
           # 自定义
           if @valid and @pattern? and @pattern isnt ""
-            @valid = (RULE[@pattern.match(new RegExp "^\s*#{PATTERN_KEY_SOURCE}\s*$")?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
-            @message = @error("INVALID_VALUE") if not @valid
+            definedRule = RULE[@pattern.match(new RegExp("^\s*#{PATTERN_KEY_SOURCE}\s*$"))?[1] ? ""]
+
+            if definedRule?
+              rule = definedRule.rule
+              message = @error(definedRule.message) if definedRule.message?
+            else
+              rule = new RegExp "^#{@pattern}$"
+
+            @valid = rule.test val
+            @message = message ? @error("INVALID_VALUE") if not @valid
       when "number"
         if val isnt ""
           @valid = RULE.NUMBER.rule.test val

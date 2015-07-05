@@ -196,7 +196,7 @@ requiredAttr = function(isCheckbox) {
 };
 
 validateTextualElements = function() {
-  var acEle, ele, maxVal, minVal, val, _ref, _ref1, _ref2;
+  var acEle, definedRule, ele, maxVal, message, minVal, rule, val, _ref, _ref1;
   ele = this.element;
   val = this.value();
   if (this.required && $.trim(val) === "") {
@@ -232,9 +232,18 @@ validateTextualElements = function() {
             }
           }
           if (this.valid && (this.pattern != null) && this.pattern !== "") {
-            this.valid = ((_ref = RULE[(_ref1 = (_ref2 = this.pattern.match(new RegExp("^\s*" + PATTERN_KEY_SOURCE + "\s*$"))) != null ? _ref2[1] : void 0) != null ? _ref1 : ""]) != null ? _ref : new RegExp("^" + this.pattern + "$")).test(val);
+            definedRule = RULE[(_ref = (_ref1 = this.pattern.match(new RegExp("^\s*" + PATTERN_KEY_SOURCE + "\s*$"))) != null ? _ref1[1] : void 0) != null ? _ref : ""];
+            if (definedRule != null) {
+              rule = definedRule.rule;
+              if (definedRule.message != null) {
+                message = this.error(definedRule.message);
+              }
+            } else {
+              rule = new RegExp("^" + this.pattern + "$");
+            }
+            this.valid = rule.test(val);
             if (!this.valid) {
-              this.message = this.error("INVALID_VALUE");
+              this.message = message != null ? message : this.error("INVALID_VALUE");
             }
           }
         }
@@ -272,10 +281,10 @@ validateTextualElements = function() {
     if (this.valid && this.__validations.length > 0) {
       $.each(this.__validations, (function(_this) {
         return function(idx, opts) {
-          var _ref3;
+          var _ref2;
           _this.valid = $.isFunction(opts.handler) ? opts.handler.call(ele) === true : false;
           if (!_this.valid) {
-            _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref3 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref3 : opts.message);
+            _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref2 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref2 : opts.message);
           }
           return _this.valid;
         };
