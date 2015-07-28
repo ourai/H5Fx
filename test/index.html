@@ -25,6 +25,13 @@
   </head>
   <body>
     <div class="example">
+      <form id="form_0" action="/" method="get">
+        <div class="form-group">
+          <label for="disabledField">无法操作的字段</label>
+          <input id="disabledField" class="form-control" name="disabledField" value="" required="required" disabled="disabled">
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
       <form id="form_1" action="/" method="get" data-h5f-immediate="true">
         <div class="form-group">
           <label for="gender">性别</label>

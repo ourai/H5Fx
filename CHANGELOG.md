@@ -16,6 +16,7 @@
 ### Bug fixes
   * 验证 `<input type="number">` 的值时不支持负数、小数等
   * 验证时遇到 `checkbox` 和 `radio` 会报错
+  * 修复 `<input disabled="disabled">` 时没有跳过验证步骤
 
 ## 0.1.0
 

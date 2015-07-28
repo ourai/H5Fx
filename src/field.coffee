@@ -280,8 +280,9 @@ class Field
     return opts
 
   # 使验证失效
-  disableValidation: ->
+  disableValidation: ( isByAttr ) ->
     @__enabled = false
+    @__disabled = true if isByAttr is true
     @__form.invalidCount-- if @__counted is true
 
     resetFieldStatus.call @
@@ -301,6 +302,8 @@ class Field
     @__enabled = true
     _elem = @element
 
+    delete @__disabled
+
     $(_elem).trigger EVENT.ENABLED
     $(if @__checkable then _elem[0] else _elem).trigger(EVENT.VALIDATE) if validate is true
 
@@ -313,3 +316,7 @@ class Field
   # 获取字段的有效状态
   isValid: ->
     return @valid is true
+
+  # 是否有 disabled 属性
+  isDisabled: ->
+    return if @__checkable then false else $(@element).prop("disabled")

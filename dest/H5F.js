@@ -403,8 +403,11 @@ Field = (function() {
     return opts;
   };
 
-  Field.prototype.disableValidation = function() {
+  Field.prototype.disableValidation = function(isByAttr) {
     this.__enabled = false;
+    if (isByAttr === true) {
+      this.__disabled = true;
+    }
     if (this.__counted === true) {
       this.__form.invalidCount--;
     }
@@ -426,6 +429,7 @@ Field = (function() {
     var _elem;
     this.__enabled = true;
     _elem = this.element;
+    delete this.__disabled;
     $(_elem).trigger(EVENT.ENABLED);
     if (validate === true) {
       $(this.__checkable ? _elem[0] : _elem).trigger(EVENT.VALIDATE);
@@ -439,6 +443,14 @@ Field = (function() {
 
   Field.prototype.isValid = function() {
     return this.valid === true;
+  };
+
+  Field.prototype.isDisabled = function() {
+    if (this.__checkable) {
+      return false;
+    } else {
+      return $(this.element).prop("disabled");
+    }
   };
 
   return Field;
@@ -481,11 +493,25 @@ validateField = function(form, field) {
 };
 
 validateOtherFields = function(inst, immediate) {
+  if (inst.sequence == null) {
+    return;
+  }
   return $.each(inst.sequence, function(idx, name) {
     var checkable, ele, field;
     field = inst.fields[name];
     ele = field.element;
     checkable = field.__checkable;
+    if (!checkable) {
+      if (field.__disabled === true) {
+        if (field.isDisabled() === false) {
+          field.enableValidation();
+        }
+      } else {
+        if (field.isDisabled() === true) {
+          field.disableValidation(true);
+        }
+      }
+    }
     if ((!checkable && hasAttr(ele, "data-h5f-associate")) || !immediate) {
       field.validated = false;
     }

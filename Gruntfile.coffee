@@ -69,7 +69,7 @@ module.exports = ( grunt ) ->
                 " *\n" +
                 " * Date: <%= grunt.template.today('yyyy-mm-dd') %>\n" +
                 " */\n"
-        sourceMap: true
+        sourceMap: false
       build_normal:
         src: "dest/<%= pkg.name %>.js"
         dest: "dest/<%= pkg.name %>.min.js"

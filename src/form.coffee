@@ -29,10 +29,18 @@ validateField = ( form, field ) ->
 
 # 在提交时对没有验证过的表单元素进行验证
 validateOtherFields = ( inst, immediate ) ->
+  return if not inst.sequence?
+
   $.each inst.sequence, ( idx, name ) ->
     field = inst.fields[name]
     ele = field.element
     checkable = field.__checkable
+
+    if not checkable
+      if field.__disabled is true
+        field.enableValidation() if field.isDisabled() is false
+      else
+        field.disableValidation(true) if field.isDisabled() is true
     
     field.validated = false if (not checkable and hasAttr(ele, "data-h5f-associate")) or not immediate
 
