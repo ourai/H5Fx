@@ -1,8 +1,8 @@
 {
-  "name": "H5F",
-  "version": "0.1.1",
+  "name": "H5Fx",
+  "version": "1.0.0",
   "description": "A form validation plugin based on HTML5",
-  "homepage": "https://github.com/ourai/H5F",
+  "homepage": "https://github.com/ourai/H5Fx",
   "keywords": [
     "form",
     "validation",
@@ -13,9 +13,9 @@
   "author": "Ourai Lin <ourairyu@hotmail.com> (http://ourai.ws/)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ourai/H5F.git"
+    "url": "https://github.com/ourai/H5Fx.git"
   },
-  "bugs": "https://github.com/ourai/H5F/issues",
+  "bugs": "https://github.com/ourai/H5Fx/issues",
   "engines": "node >= 0.8.0",
   "devDependencies": {
     "grunt": "~0.4.1",

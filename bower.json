@@ -1,7 +1,10 @@
 {
-  "name": "html5form",
-  "version": "0.1.1",
-  "main": ["dest/html5form.min.js"],
+  "name": "H5Fx",
+  "version": "1.0.0",
+  "main": [
+    "H5Fx.js",
+    "H5Fx.min.js"
+  ],
   "license": "MIT",
   "ignore": [
     "**/.*",

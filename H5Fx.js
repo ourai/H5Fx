@@ -20,7 +20,7 @@ var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedE
 
 LIB_CONFIG = {
   name: "H5F",
-  version: "0.1.1"
+  version: "1.0.0"
 };
 
 PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}";
