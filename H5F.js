@@ -16,7 +16,7 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, fieldProps, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, reorderSequence, requiredAttr, reset, resetDefaultValue, resetFieldStatus, subBtnSels, toHex, toNum, triggerValidityEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, fieldProps, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, reorderSequence, requiredAttr, reset, resetDefaultValue, resetFieldStatus, submitButtonSelector, toHex, toNum, triggerValidityEvent, updateFieldsRef, validateCheckableElements, validateField, validateFieldSelector, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
@@ -61,6 +61,7 @@ EVENT = {
   SUBMIT: "H5F:submit",
   DESTROY: "H5F:destroy",
   BEFORE_VALIDATE: "H5F:beforeValidate",
+  UPDATED: "H5F:updated",
   VALIDATE: "H5F:validate",
   VALID: "H5F:valid",
   INVALID: "H5F:invalid",
@@ -457,7 +458,9 @@ Field = (function() {
 
 })();
 
-subBtnSels = ":submit, :image, :reset";
+submitButtonSelector = ":submit, :image, :reset";
+
+validateFieldSelector = "[name]:not([type='hidden'], " + submitButtonSelector + ")";
 
 defaultSettings = {
   immediate: false
@@ -523,7 +526,7 @@ validateOtherFields = function(inst, immediate) {
 };
 
 bindEvent = function(form, inst, immediate) {
-  $("[name]", form).on(EVENT.VALIDATE, function() {
+  form.on(EVENT.VALIDATE, "[name]", function() {
     var f;
     f = inst.fields[$(this).prop("name")];
     if (f.isEnabled()) {
@@ -532,10 +535,10 @@ bindEvent = function(form, inst, immediate) {
     return f;
   });
   if (immediate === true) {
-    $("[name]:checkbox, [name]:radio, select[name]", form).on("change.H5F", function() {
+    form.on("change.H5F", "[name]:checkbox, [name]:radio, select[name]", function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
-    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change.H5F" : "input.H5F"), function() {
+    form.on((lowerThan(9) ? "change.H5F" : "input.H5F"), "[name]:not(:checkbox, :radio, " + submitButtonSelector + ", select, option)", function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
   }
@@ -569,22 +572,53 @@ getInstId = function(form) {
   return id;
 };
 
-reorderSequence = function(idx, name) {};
+reorderSequence = function() {
+  var fields, seq;
+  seq = [];
+  fields = {};
+  $("" + validateFieldSelector, $(this.form)).each((function(_this) {
+    return function(idx, el) {
+      var name;
+      name = $(el).attr("name");
+      if (fields[name] == null) {
+        fields[name] = _this.addField(new Field(el));
+        seq.push(name);
+      }
+    };
+  })(this));
+  return seq;
+};
+
+updateFieldsRef = function() {
+  var seq;
+  seq = reorderSequence.call(this);
+  if (seq.length === 0) {
+    delete this.fields;
+    delete this.sequence;
+  } else {
+    $.each(this.sequence, (function(_this) {
+      return function(idx, name) {
+        if ($.inArray(name, seq) === -1) {
+          delete _this.fields[name];
+        }
+      };
+    })(this));
+    this.sequence = seq;
+  }
+  return this.fields;
+};
 
 Form = (function() {
   function Form(form) {
-    var inst;
-    inst = this;
     this.form = form;
     this.novalidate = hasAttr(form, "novalidate");
     this.invalidCount = 0;
     initCount++;
-    $("[name]:not([type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
-      var ipt, name;
-      ipt = $(this);
-      name = ipt.prop("name");
-      return inst.addField(new Field(this));
-    });
+    $("" + validateFieldSelector, $(form)).each((function(_this) {
+      return function(idx, el) {
+        return _this.addField(new Field(el));
+      };
+    })(this));
   }
 
   Form.prototype.addField = function(field) {
@@ -621,11 +655,9 @@ Form = (function() {
   };
 
   Form.prototype.update = function() {
-    return $("[name]", form).each((function(_this) {
-      return function(idx, name) {
-        return reorderSequence.apply(_this, [idx, name]);
-      };
-    })(this));
+    updateFieldsRef.call(this);
+    $(this.form).trigger(EVENT.UPDATED);
+    return this;
   };
 
 

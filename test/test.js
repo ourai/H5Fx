@@ -25,7 +25,7 @@ $(document).ready(function() {
       message: "NOT_A_MOBILE"
     }
   });
-  $("[name]").on({
+  $("form").on({
     "H5F:valid": function(e, field) {
       return $(field.element).closest(".form-group").removeClass("has-error").children(".help-block").hide();
     },
@@ -37,7 +37,7 @@ $(document).ready(function() {
       }
       return group.addClass("has-error").children(".help-block").show().text(field.message);
     }
-  });
+  }, "[name]");
   $("form").on({
     "H5F:submit": function(e, inst, sub) {
       console.log("submit");
@@ -69,10 +69,11 @@ $(document).ready(function() {
       return "长度不对";
     }
   });
-  return $("#form_2").on("H5F:submit", function() {
+  $("#form_2").on("H5F:submit", function() {
     console.log("form_2 submit");
     return "form_2";
   });
+  return window.testForm = H5F.get($("#form_0"));
 });
 
 $(document).on({
@@ -83,3 +84,14 @@ $(document).on({
     return console.log(this, "disabled");
   }
 }, "[name]");
+
+window.addTestInput = function(type) {
+  var form, id, idx;
+  if (type == null) {
+    type = "text";
+  }
+  form = $("#form_0");
+  idx = $("[type='" + type + "']", form).size();
+  id = "form_0_" + type + "_" + idx;
+  return form.prepend("<div class=\"form-group\">\n  <label for=\"" + id + "\">" + id + "</label>\n  <input id=\"" + id + "\" class=\"form-control\" name=\"" + id + "\" type=\"" + type + "\" required=\"required\">\n</div>");
+};

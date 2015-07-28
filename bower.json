@@ -3,7 +3,18 @@
   "version": "0.1.1",
   "main": ["dest/html5form.min.js"],
   "license": "MIT",
-  "ignore": ["**/*", "!dest/**/*"],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "vendors",
+    "docs",
+    "build",
+    "src",
+    "test",
+    "*.json",
+    "*.md",
+    "Gruntfile.coffee"
+  ],
   "dependencies": {
     "jquery": "https://github.com/jquery/jquery.git#1.9.1",
     "bootstrap": "https://github.com/twbs/bootstrap.git#3.3.2"
