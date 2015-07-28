@@ -9,6 +9,7 @@
   * 表单字段元素可以绑定 `H5F:disabled` 和 `H5F:enabled` 事件以对失效、有效操作进行反馈
   * 添加 `Field.prototype.disableValidation()` 和 `Field.prototype.enableValidation()` 用于对目标字段的验证有效性进行操作
   * 将验证规则的正则表达式抛出到全局变量中——`H5F.RULES`
+  * 添加 `H5F.prototype.update()`
 
 ### Deprecations
   * 移除 `H5F.destroy()`

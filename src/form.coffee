@@ -1,4 +1,5 @@
-subBtnSels = ":submit, :image, :reset"
+submitButtonSelector = ":submit, :image, :reset"
+validateFieldSelector = "[name]:not([type='hidden'], #{submitButtonSelector})"
 
 # 默认设置
 defaultSettings =
@@ -37,8 +38,11 @@ validateOtherFields = ( inst, immediate ) ->
     checkable = field.__checkable
 
     if not checkable
+      # 因为设置了 disabled 属性而被跳过验证的表单元素
+      # 在被动态移除 disabled 属性时重新启用验证
       if field.__disabled is true
         field.enableValidation() if field.isDisabled() is false
+      # 有 disabled 属性的表单元素设置为不进行验证操作
       else
         field.disableValidation(true) if field.isDisabled() is true
     
@@ -50,7 +54,7 @@ validateOtherFields = ( inst, immediate ) ->
 
 # 绑定事件
 bindEvent = ( form, inst, immediate ) ->
-  $("[name]", form).on EVENT.VALIDATE, ->
+  form.on EVENT.VALIDATE, "[name]", ->
     f = inst.fields[$(@).prop("name")]
 
     validateField(inst, f) if f.isEnabled()
@@ -58,10 +62,10 @@ bindEvent = ( form, inst, immediate ) ->
     return f
 
   if immediate is true
-    $("[name]:checkbox, [name]:radio, select[name]", form).on "change.H5F", ->
+    form.on "change.H5F", "[name]:checkbox, [name]:radio, select[name]", ->
       $(@).trigger EVENT.VALIDATE
 
-    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change.H5F" else "input.H5F"), ->
+    form.on (if lowerThan(9) then "change.H5F" else "input.H5F"), "[name]:not(:checkbox, :radio, #{submitButtonSelector}, select, option)", ->
       $(@).trigger EVENT.VALIDATE
 
   form.on "submit.H5F", ( e ) ->
@@ -94,24 +98,52 @@ getInstId = ( form ) ->
   return id
 
 # 对字段序列重新排序
-reorderSequence = ( idx, name ) ->
-  #
+reorderSequence = ->
+  seq = []
+  fields = {}
+
+  # 获取新的字段序列
+  $("#{validateFieldSelector}", $(@form)).each ( idx, el ) =>
+    name = $(el).attr "name"
+
+    if not fields[name]?
+      fields[name] = @addField(new Field el)
+      seq.push name
+
+    return
+
+  return seq
+
+# 更新字段的引用
+updateFieldsRef = ->
+  seq = reorderSequence.call @
+
+  # 新的字段序列长度为零时删除字段相关引用
+  if seq.length is 0
+    delete @fields
+    delete @sequence
+  else
+    # 剔除新的字段序列中不存在的字段引用
+    $.each @sequence, ( idx, name ) =>
+      delete @fields[name] if $.inArray(name, seq) is -1
+
+      return
+
+    # 将新的字段序列保存到表单实例上
+    @sequence = seq
+
+  return @fields
 
 class Form
   constructor: ( form ) ->
-    inst = @
-
     @form = form
     @novalidate = hasAttr form, "novalidate"
     @invalidCount = 0
 
     initCount++
 
-    $("[name]:not([type='hidden'], #{subBtnSels})", $(form)).each ->
-      ipt = $ @
-      name = ipt.prop "name"
-
-      inst.addField new Field @
+    $("#{validateFieldSelector}", $(form)).each ( idx, el ) =>
+      return @addField(new Field el)
 
   addField: ( field ) ->
     @fields = {} if not @fields?
@@ -142,8 +174,11 @@ class Form
 
   # 更新表单的验证字段列表
   update: ->
-    $("[name]", form).each ( idx, name ) =>
-      reorderSequence.apply @, [idx, name]
+    updateFieldsRef.call @
+
+    $(@form).trigger EVENT.UPDATED
+
+    return @
 
   ###
   # 销毁实例

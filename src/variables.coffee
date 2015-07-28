@@ -36,6 +36,7 @@ EVENT =
   SUBMIT: "H5F:submit"
   DESTROY: "H5F:destroy"
   BEFORE_VALIDATE: "H5F:beforeValidate"
+  UPDATED: "H5F:updated"
   # 字段
   VALIDATE: "H5F:validate"
   VALID: "H5F:valid"
