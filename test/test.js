@@ -16,9 +16,16 @@ $(document).ready(function() {
     DIFFERENT_VALUE: "{{LABEL}}的值没有与{{ASSOCIATE_LABEL}}保持一致",
     AT_LEAST_CHOOSE_ONE: "请从{{LABEL}}中选择一项",
     SHOOLD_BE_CHOSEN: "请选中{{UNIT_LABEL}}",
-    SHOOLD_CHOOSE_AN_OPTION: "必须从{{LABEL}}中选择一项"
+    SHOOLD_CHOOSE_AN_OPTION: "必须从{{LABEL}}中选择一项",
+    NOT_A_MOBILE: "{{LABEL}}不是一个手机号码"
   });
-  $("[name]").on({
+  H5F.rules({
+    MOBILE: {
+      rule: /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/,
+      message: "NOT_A_MOBILE"
+    }
+  });
+  $("form").on({
     "H5F:valid": function(e, field) {
       return $(field.element).closest(".form-group").removeClass("has-error").children(".help-block").hide();
     },
@@ -30,7 +37,7 @@ $(document).ready(function() {
       }
       return group.addClass("has-error").children(".help-block").show().text(field.message);
     }
-  });
+  }, "[name]");
   $("form").on({
     "H5F:submit": function(e, inst, sub) {
       console.log("submit");
@@ -62,8 +69,29 @@ $(document).ready(function() {
       return "长度不对";
     }
   });
-  return $("#form_2").on("H5F:submit", function() {
+  $("#form_2").on("H5F:submit", function() {
     console.log("form_2 submit");
     return "form_2";
   });
+  return window.testForm = H5F.get($("#form_0"));
 });
+
+$(document).on({
+  "H5F:enabled": function() {
+    return console.log(this, "enabled");
+  },
+  "H5F:disabled": function() {
+    return console.log(this, "disabled");
+  }
+}, "[name]");
+
+window.addTestInput = function(type) {
+  var form, id, idx;
+  if (type == null) {
+    type = "text";
+  }
+  form = $("#form_0");
+  idx = $("[type='" + type + "']", form).size();
+  id = "form_0_" + type + "_" + idx;
+  return form.prepend("<div class=\"form-group\">\n  <label for=\"" + id + "\">" + id + "</label>\n  <input id=\"" + id + "\" class=\"form-control\" name=\"" + id + "\" type=\"" + type + "\" required=\"required\">\n</div>");
+};

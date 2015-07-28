@@ -1,12 +1,5 @@
-EVENT =
-  # 表单
-  BEFORE_VALIDATE: "H5F:beforeValidate"
-  SUBMIT: "H5F:submit"
-  DESTROY: "H5F:destroy"
-  # 字段
-  VALIDATE: "H5F:validate"
-
-subBtnSels = ":submit, :image, :reset"
+submitButtonSelector = ":submit, :image, :reset"
+validateFieldSelector = "[name]:not([type='hidden'], #{submitButtonSelector})"
 
 # 默认设置
 defaultSettings =
@@ -27,35 +20,52 @@ validateField = ( form, field ) ->
   field.validated = true
   
   if field.validate()
-    form.invalidCount = --form.invalidCount if field.counted is true
-    field.counted = false
+    form.invalidCount-- if field.__counted is true
+    field.__counted = false
   else
-    form.invalidCount = ++form.invalidCount if field.counted isnt true
-    field.counted = true
+    form.invalidCount++ if field.__counted isnt true
+    field.__counted = true
 
   return field
 
 # 在提交时对没有验证过的表单元素进行验证
 validateOtherFields = ( inst, immediate ) ->
+  return if not inst.sequence?
+
   $.each inst.sequence, ( idx, name ) ->
     field = inst.fields[name]
-    field.validated = false if not immediate
     ele = field.element
+    checkable = field.__checkable
 
-    $(if $.isArray(ele) then ele[0] else ele).trigger(EVENT.VALIDATE) if field.validated is false
+    if not checkable
+      # 因为设置了 disabled 属性而被跳过验证的表单元素
+      # 在被动态移除 disabled 属性时重新启用验证
+      if field.__disabled is true
+        field.enableValidation() if field.isDisabled() is false
+      # 有 disabled 属性的表单元素设置为不进行验证操作
+      else
+        field.disableValidation(true) if field.isDisabled() is true
+    
+    field.validated = false if (not checkable and hasAttr(ele, "data-h5f-associate")) or not immediate
+
+    $(if checkable then ele[0] else ele).trigger(EVENT.VALIDATE) if field.isEnabled() and field.validated is false
 
     return true
 
 # 绑定事件
 bindEvent = ( form, inst, immediate ) ->
-  $("[name]", form).on EVENT.VALIDATE, ->
-    validateField inst, inst.fields[$(@).prop("name")]
+  form.on EVENT.VALIDATE, "[name]", ->
+    f = inst.fields[$(@).prop("name")]
+
+    validateField(inst, f) if f.isEnabled()
+
+    return f
 
   if immediate is true
-    $("[name]:checkbox, [name]:radio, select[name]", form).on "change.H5F", ->
+    form.on "change.H5F", "[name]:checkbox, [name]:radio, select[name]", ->
       $(@).trigger EVENT.VALIDATE
 
-    $("[name]:not(:checkbox, :radio, #{subBtnSels}, select, option)", form).on (if lowerThan(9) then "change.H5F" else "input.H5F"), ->
+    form.on (if lowerThan(9) then "change.H5F" else "input.H5F"), "[name]:not(:checkbox, :radio, #{submitButtonSelector}, select, option)", ->
       $(@).trigger EVENT.VALIDATE
 
   form.on "submit.H5F", ( e ) ->
@@ -87,21 +97,53 @@ getInstId = ( form ) ->
 
   return id
 
+# 对字段序列重新排序
+reorderSequence = ->
+  seq = []
+  fields = {}
+
+  # 获取新的字段序列
+  $("#{validateFieldSelector}", $(@form)).each ( idx, el ) =>
+    name = $(el).attr "name"
+
+    if not fields[name]?
+      fields[name] = @addField(new Field el)
+      seq.push name
+
+    return
+
+  return seq
+
+# 更新字段的引用
+updateFieldsRef = ->
+  seq = reorderSequence.call @
+
+  # 新的字段序列长度为零时删除字段相关引用
+  if seq.length is 0
+    delete @fields
+    delete @sequence
+  else
+    # 剔除新的字段序列中不存在的字段引用
+    $.each @sequence, ( idx, name ) =>
+      delete @fields[name] if $.inArray(name, seq) is -1
+
+      return
+
+    # 将新的字段序列保存到表单实例上
+    @sequence = seq
+
+  return @fields
+
 class Form
   constructor: ( form ) ->
-    inst = @
-
     @form = form
-    @novalidate = form.hasAttribute "novalidate"
+    @novalidate = hasAttr form, "novalidate"
     @invalidCount = 0
 
     initCount++
 
-    $("[name]:not([type='hidden'], #{subBtnSels})", $(form)).each ->
-      ipt = $ @
-      name = ipt.prop "name"
-
-      inst.addField new Field @
+    $("#{validateFieldSelector}", $(form)).each ( idx, el ) =>
+      return @addField(new Field el)
 
   addField: ( field ) ->
     @fields = {} if not @fields?
@@ -110,6 +152,7 @@ class Form
     name = field.name
 
     if not @fields[name]?
+      field.__form = @
       field.validated = false
 
       @fields[name] = field
@@ -120,6 +163,55 @@ class Form
   # 添加额外的验证
   addValidation: ( fieldName, opts ) ->
     return @fields[fieldName]?.addValidation opts
+
+  # 使目标字段验证失效
+  disableValidation: ( fieldName ) ->
+    return @fields[fieldName]?.disableValidation()
+
+  # 使目标字段验证有效
+  enableValidation: ( fieldName, validate ) ->
+    return @fields[fieldName]?.enableValidation validate
+
+  # 更新表单的验证字段列表
+  update: ->
+    updateFieldsRef.call @
+
+    $(@form).trigger EVENT.UPDATED
+
+    return @
+
+  ###
+  # 销毁实例
+  # 
+  # @method  destroy
+  # @return  {DOM}
+  ###
+  destroy: ->
+    form = $ @form
+
+    # 解绑事件
+    form.off ".H5F"
+    $("[name]", form).off ".H5F"
+
+    $(".H5F-label--required", form).removeClass "H5F-label--required"
+
+    # 恢复表单默认的 HTML5 验证属性
+    if @novalidate
+      form.attr "novalidate", true
+    else
+      form.removeAttr "novalidate"
+
+    # 删除引用
+    delete @constructor.forms[@form["H5F-form"]]
+    delete @form["H5F-form"]
+
+    @constructor.forms.length--
+
+    form.trigger EVENT.DESTROY
+
+    return form.get(0)
+
+  @RULES = $.extend true, {}, RULE
 
   @version = LIB_CONFIG.version
 
@@ -162,41 +254,6 @@ class Form
         bindEvent(form, inst, opts.immediate is true) if not form.attr("data-h5f-novalidate")?
 
   ###
-  # 销毁指定表单实例
-  # 
-  # @method  destroy
-  # @param   form {DOM/jQuery/String}
-  # @return  {Boolean}
-  ###
-  @destroy = ( form ) ->
-    id = getInstId form
-    inst = @forms[id]
-
-    if inst?
-      form = $ inst.form
-
-      form.off ".H5F"
-      $("[name]", form).off ".H5F"
-
-      $(".H5F-label--required", form).removeClass "H5F-label--required"
-
-      if inst.novalidate
-        form.attr "novalidate", true
-      else
-        form.removeAttr "novalidate"
-
-      delete @forms[id]
-      delete inst.form["H5F-form"]
-
-      @forms.length--
-
-      form.trigger EVENT.DESTROY
-
-      return true
-
-    return false
-
-  ###
   # 获取指定实例
   # 
   # @method  get
@@ -212,4 +269,4 @@ class Form
 
   # 自定义验证规则
   @rules = ( rules ) ->
-    return $.extend RULE, rules
+    return (@RULES = $.extend(true, {}, $.extend(RULE, rules)))

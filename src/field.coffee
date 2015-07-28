@@ -1,47 +1,53 @@
-PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}"
+# 初始化字段属性
+fieldProps = ( ele ) ->
+  ele = $ ele
+  form = ele.closest("form").eq(0)
 
-RULE =
-  ABSOLUTE_URL: /^.*$/
-  # from https://html.spec.whatwg.org/multipage/forms.html#e-mail-state-(type=email)
-  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-  NUMBER: /^\d+(\.0+)?$/
+  @form = form.get 0
+  @type = elementType ele
+  @name = ele.prop "name"
 
-ERROR =
-  UNKNOWN_INPUT_TYPE: "Unknown input type for {{LABEL}}."
-  # For textual elements
-  COULD_NOT_BE_EMPTY: "{{LABEL}} could not be empty."
-  LENGTH_SMALLER_THAN_MINIMUM: "The length of {{LABEL}} is smaller than {{MINLENGTH}}."
-  LENGTH_BIGGER_THAN_MAXIMUM: "The length of {{LABEL}} is bigger than {{MAXLENGTH}}."
-  INVALID_VALUE: "{{LABEL}}'s value is invalid."
-  NOT_AN_ABSOLUTE_URL: "{{LABEL}} isn't an absolute URL."
-  NOT_AN_EMAIL: "{{LABEL}} isn't an E-mail."
-  NOT_A_NUMBER: "{{LABEL}} isn't a number."
-  UNDERFLOW: "{{LABEL}}'s value is smaller than {{MIN}}."
-  OVERFLOW: "{{LABEL}}'s value is bigger than {{MAX}}."
-  DIFFERENT_VALUE: "{{LABEL}}'s value is different from {{ASSOCIATE_LABEL}}."
-  # For checkable elements
-  AT_LEAST_CHOOSE_ONE: "At least choose an option from {{LABEL}}."
-  SHOOLD_BE_CHOSEN: "{{UNIT_LABEL}} shoold be chosen."
-  # For select
-  SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
+  @__form = null
+  @__counted = false
+  @__enabled = true
+  @__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) isnt -1
+  @__validations = []
+
+  if @__checkable
+    elements = $("[name='#{@name}']", form)
+    requiredElements = elements.closest requiredAttr(@type)
+
+    @__defaultValue = elements.closest ":checked"
+
+    @element = $.makeArray elements
+    @required = requiredElements.size() > 0
+    @label = fieldLabel (if @required then requiredElements.eq(0) else $(@element[0])), form
+
+    @validate = validateCheckableElements
+  else
+    @element = ele.get 0
+    @required = hasAttr @element, "required"
+    @label = fieldLabel ele, form
+
+    if @element.tagName.toLowerCase() is "select"
+      @__defaultValue = $(":selected", ele)
+
+      @validate = validateSelectElement
+    else
+      @__defaultValue = ele.val()
+
+      @validate = validateTextualElements
+      @pattern = ele.attr "pattern"
+
+    labelElement(ele, form).addClass("H5F-label--required") if @required
+
+  reset.call @
 
 # 表单元素类型
 # 在不支持 HTML5 中所定义的 type 值的浏览器中只能通过 $.fn.attr 来获取到真正的字符串
 # 否则，通过 $.fn.prop 获取到的都是 "text"
 elementType = ( ele ) ->
   return if ele.get(0).tagName.toLowerCase() is "input" then ele.attr("type") ? "text" else ele.prop "type"
-
-# 是否为成组的表单元素
-isCheckableElement = ( ele ) ->
-  return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) isnt -1
-
-# 是否拥有某个 HTML 属性
-hasAttr = ( ele, attr ) ->
-  return ele.hasAttribute attr
-
-# 转换为数字
-toNum = ( str ) ->
-  return parseFloat str
 
 # 获取极值
 getExtremum = ( ele, type ) ->
@@ -72,9 +78,34 @@ reset = ->
 
   return
 
+# 将字段恢复到初始值
+resetDefaultValue = ->
+  elem = $ @element
+
+  if @__checkable
+    elem.closest(":checked").prop "checked", false
+    $(@__defaultValue).prop "checked", true
+  else if @element.tagName.toLowerCase() is "select"
+    $(":selected", elem).prop "selected", false
+    $(@__defaultValue).prop "selected", true
+  else
+    elem.val @__defaultValue
+
+  return
+
+# 清除字段状态
+resetFieldStatus = ->
+  @__counted = false
+  @validated = false
+
+  reset.call @
+  resetDefaultValue.call @
+
+  return
+
 # 触发有效性事件
-triggerEvent = ( field, ele ) ->
-  return $(ele).trigger "H5F:#{if field.valid then "valid" else "invalid"}", field
+triggerValidityEvent = ( field, ele ) ->  
+  return $(ele).trigger (if field.valid then EVENT.VALID else EVENT.INVALID), field
 
 # 获取必填可选择字段的属性选择器
 requiredAttr = ( isCheckbox ) ->
@@ -107,20 +138,28 @@ validateTextualElements = ->
           if val isnt ""
             # URL
             if @type is "url"
-              @valid = RULE.ABSOLUTE_URL.test val
-              @message = @error("NOT_AN_ABSOLUTE_URL") if not @valid
+              @valid = RULE.ABSOLUTE_URL.rule.test val
+              @message = @error(RULE.ABSOLUTE_URL.message) if not @valid
             # E-mail
             else if @type is "email"
-              @valid = RULE.EMAIL.test val
-              @message = @error("NOT_AN_EMAIL") if not @valid
+              @valid = RULE.EMAIL.rule.test val
+              @message = @error(RULE.EMAIL.message) if not @valid
 
           # 自定义
           if @valid and @pattern? and @pattern isnt ""
-            @valid = (RULE[@pattern.match(new RegExp "^\s*#{PATTERN_KEY_SOURCE}\s*$")?[1] ? ""] ? new RegExp "^#{@pattern}$").test val
-            @message = @error("INVALID_VALUE") if not @valid
+            definedRule = RULE[@pattern.match(new RegExp("^\s*#{PATTERN_KEY_SOURCE}\s*$"))?[1] ? ""]
+
+            if definedRule?
+              rule = definedRule.rule
+              message = @error(definedRule.message) if definedRule.message?
+            else
+              rule = new RegExp "^#{@pattern}$"
+
+            @valid = rule.test val
+            @message = message ? @error("INVALID_VALUE") if not @valid
       when "number"
         if val isnt ""
-          @valid = RULE.NUMBER.test val
+          @valid = RULE.NUMBER.rule.test val
 
           if @valid
             minVal = getExtremum ele, "min"
@@ -135,7 +174,7 @@ validateTextualElements = ->
               @valid = false
               @message = @error "OVERFLOW"
           else
-            @message = @error "NOT_A_NUMBER"
+            @message = @error RULE.NUMBER.message
       else
         @message = @error "UNKNOWN_INPUT_TYPE"
 
@@ -155,7 +194,7 @@ validateTextualElements = ->
 
         return @valid
 
-  triggerEvent @, ele
+  triggerValidityEvent @, ele
 
   return @valid
 
@@ -165,7 +204,7 @@ validateSelectElement = ->
     @valid = false
     @message = @error "SHOOLD_CHOOSE_AN_OPTION"
 
-  triggerEvent @, @element
+  triggerValidityEvent @, @element
 
   return @valid
 
@@ -199,49 +238,17 @@ validateCheckableElements = ->
     else
       ele = elements
 
-  triggerEvent @, ele.get(0)
+  triggerValidityEvent @, ele.get(0)
 
   return @valid
 
 class Field
-  constructor: ( ele ) ->
-    ele = $ ele
-    form = ele.closest("form").eq(0)
-
-    @form = form.get 0
-    @type = elementType ele
-    @name = ele.prop "name"
-
-    @__validations = []
-
-    if isCheckableElement(ele)
-      elements = $("[name='#{@name}']", form)
-      requiredElements = elements.closest requiredAttr(@type)
-
-      @element = $.makeArray elements
-      @required = requiredElements.size() > 0
-      @label = fieldLabel (if @required then requiredElements.eq(0) else $(@element[0])), form
-
-      @validate = validateCheckableElements
-    else
-      @element = ele.get 0
-      @required = hasAttr @element, "required"
-      @label = fieldLabel ele, form
-
-      if @element.tagName.toLowerCase() is "select"
-        @validate = validateSelectElement
-      else
-        @validate = validateTextualElements
-        @pattern = ele.attr "pattern"
-
-      labelElement(ele, form).addClass("H5F-label--required") if @required
-
-    reset.call @
+  constructor: fieldProps
 
   # 获取字段的值
   # 如果是 radio 或 checkbox 等则值为被选中的对象的
   value: ->
-    return if isCheckableElement(@element) then $("[name='#{@name}']:checked", $(@form)).val() else $(@element).val()
+    return if @__checkable then $("[name='#{@name}']:checked", $(@form)).val() else $(@element).val()
 
   reset: reset
 
@@ -271,3 +278,45 @@ class Field
     @__validations.push opts
 
     return opts
+
+  # 使验证失效
+  disableValidation: ( isByAttr ) ->
+    @__enabled = false
+    @__disabled = true if isByAttr is true
+    @__form.invalidCount-- if @__counted is true
+
+    resetFieldStatus.call @
+
+    $(@element).trigger EVENT.DISABLED
+
+    return @
+
+  ###
+  # 使验证有效
+  # 
+  # @method  enableValidation
+  # @param   [validate] {Boolean}       是否立即对字段进行验证
+  # @return  {Object}
+  ###
+  enableValidation: ( validate ) ->
+    @__enabled = true
+    _elem = @element
+
+    delete @__disabled
+
+    $(_elem).trigger EVENT.ENABLED
+    $(if @__checkable then _elem[0] else _elem).trigger(EVENT.VALIDATE) if validate is true
+
+    return @
+
+  # 获取验证的有效状态
+  isEnabled: ->
+    return @__enabled is true
+
+  # 获取字段的有效状态
+  isValid: ->
+    return @valid is true
+
+  # 是否有 disabled 属性
+  isDisabled: ->
+    return if @__checkable then false else $(@element).prop("disabled")

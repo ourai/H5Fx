@@ -8,30 +8,20 @@ module.exports = ( grunt ) ->
       "grunt-contrib-uglify"
       "grunt-contrib-concat"
       "grunt-contrib-copy"
-      "grunt-contrib-clean"
     ]
 
   grunt.initConfig
     repo: info
     pkg: pkg
     meta:
-      base: "src/javascripts/base"
-
-      modules: "src/javascripts/modules"
-      mod_cmpt: "<%= meta.modules %>/Component"
-
       temp: ".<%= pkg.name %>-cache"
-      image: "src/images"
-
-      dest: "dest"
-      dest_script: "<%= meta.dest %>/javascripts"
-
-      tests: "test"
     concat:
       coffee:
         files:
           "<%= meta.temp %>/<%= pkg.name %>.coffee": [
               "src/intro.coffee"
+              "src/variables.coffee"
+              "src/functions.coffee"
               "src/field.coffee"
               "src/form.coffee"
               "src/outro.coffee"
@@ -46,7 +36,7 @@ module.exports = ( grunt ) ->
             "<%= meta.temp %>/<%= pkg.name %>.js"
             "build/outro.js"
           ]
-        dest: "dest/<%= pkg.name %>.js"
+        dest: "<%= pkg.name %>.js"
     coffee:
       options:
         bare: true
@@ -55,8 +45,8 @@ module.exports = ( grunt ) ->
         src: "<%= meta.temp %>/<%= pkg.name %>.coffee"
         dest: "<%= meta.temp %>/<%= pkg.name %>.js"
       test:
-        src: "<%= meta.tests %>/test.coffee"
-        dest: "<%= meta.tests %>/test.js"
+        src: "test/test.coffee"
+        dest: "test/test.js"
     uglify:
       options:
         banner: "/*!\n" +
@@ -67,21 +57,16 @@ module.exports = ( grunt ) ->
                 " *\n" +
                 " * Date: <%= grunt.template.today('yyyy-mm-dd') %>\n" +
                 " */\n"
-        sourceMap: true
+        sourceMap: false
       build_normal:
-        src: "dest/<%= pkg.name %>.js"
-        dest: "dest/<%= pkg.name %>.min.js"
+        src: "<%= pkg.name %>.js"
+        dest: "<%= pkg.name %>.min.js"
     copy:
       test:
         expand: true
-        cwd: "<%= meta.dest %>"
-        src: ["**/*"]
-        dest: "<%= meta.tests %>"
-    clean:
-      compiled:
-        src: ["<%= meta.temp %>/**"]
-      test:
-        src: ["<%= meta.tests %>/**/*.coffee"]
+        cwd: "."
+        src: ["*.js"]
+        dest: "test"
 
   grunt.loadNpmTasks task for task in npmTasks
 

@@ -16,19 +16,28 @@
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
 "use strict";
-var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, generateInstId, getExtremum, getInstId, hasAttr, initCount, isCheckableElement, labelElement, lowerThan, requiredAttr, reset, subBtnSels, toHex, toNum, triggerEvent, validateCheckableElements, validateField, validateOtherFields, validateSelectElement, validateTextualElements;
+var ERROR, EVENT, Field, Form, LIB_CONFIG, PATTERN_KEY_SOURCE, RULE, associatedElement, bindEvent, defaultSettings, elementType, fieldLabel, fieldProps, generateInstId, getExtremum, getInstId, hasAttr, initCount, labelElement, lowerThan, reorderSequence, requiredAttr, reset, resetDefaultValue, resetFieldStatus, submitButtonSelector, toHex, toNum, triggerValidityEvent, updateFieldsRef, validateCheckableElements, validateField, validateFieldSelector, validateOtherFields, validateSelectElement, validateTextualElements;
 
 LIB_CONFIG = {
   name: "H5F",
-  version: "0.1.0"
+  version: "0.1.1"
 };
 
 PATTERN_KEY_SOURCE = "\{\{\s*([A-Z_]+)\s*\}\}";
 
 RULE = {
-  ABSOLUTE_URL: /^.*$/,
-  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-  NUMBER: /^\d+(\.0+)?$/
+  ABSOLUTE_URL: {
+    rule: /^.*$/,
+    message: "NOT_AN_ABSOLUTE_URL"
+  },
+  EMAIL: {
+    rule: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+    message: "NOT_AN_EMAIL"
+  },
+  NUMBER: {
+    rule: /^(\-)?\d+(\.\d+)?$/,
+    message: "NOT_A_NUMBER"
+  }
 };
 
 ERROR = {
@@ -48,17 +57,16 @@ ERROR = {
   SHOOLD_CHOOSE_AN_OPTION: "Must choose an option of {{LABEL}}."
 };
 
-elementType = function(ele) {
-  var _ref;
-  if (ele.get(0).tagName.toLowerCase() === "input") {
-    return (_ref = ele.attr("type")) != null ? _ref : "text";
-  } else {
-    return ele.prop("type");
-  }
-};
-
-isCheckableElement = function(ele) {
-  return $.inArray($(ele).prop("type"), ["radio", "checkbox"]) !== -1;
+EVENT = {
+  SUBMIT: "H5F:submit",
+  DESTROY: "H5F:destroy",
+  BEFORE_VALIDATE: "H5F:beforeValidate",
+  UPDATED: "H5F:updated",
+  VALIDATE: "H5F:validate",
+  VALID: "H5F:valid",
+  INVALID: "H5F:invalid",
+  DISABLED: "H5F:disabled",
+  ENABLED: "H5F:enabled"
 };
 
 hasAttr = function(ele, attr) {
@@ -67,6 +75,54 @@ hasAttr = function(ele, attr) {
 
 toNum = function(str) {
   return parseFloat(str);
+};
+
+fieldProps = function(ele) {
+  var elements, form, requiredElements;
+  ele = $(ele);
+  form = ele.closest("form").eq(0);
+  this.form = form.get(0);
+  this.type = elementType(ele);
+  this.name = ele.prop("name");
+  this.__form = null;
+  this.__counted = false;
+  this.__enabled = true;
+  this.__checkable = $.inArray(ele.prop("type"), ["radio", "checkbox"]) !== -1;
+  this.__validations = [];
+  if (this.__checkable) {
+    elements = $("[name='" + this.name + "']", form);
+    requiredElements = elements.closest(requiredAttr(this.type));
+    this.__defaultValue = elements.closest(":checked");
+    this.element = $.makeArray(elements);
+    this.required = requiredElements.size() > 0;
+    this.label = fieldLabel((this.required ? requiredElements.eq(0) : $(this.element[0])), form);
+    this.validate = validateCheckableElements;
+  } else {
+    this.element = ele.get(0);
+    this.required = hasAttr(this.element, "required");
+    this.label = fieldLabel(ele, form);
+    if (this.element.tagName.toLowerCase() === "select") {
+      this.__defaultValue = $(":selected", ele);
+      this.validate = validateSelectElement;
+    } else {
+      this.__defaultValue = ele.val();
+      this.validate = validateTextualElements;
+      this.pattern = ele.attr("pattern");
+    }
+    if (this.required) {
+      labelElement(ele, form).addClass("H5F-label--required");
+    }
+  }
+  return reset.call(this);
+};
+
+elementType = function(ele) {
+  var _ref;
+  if (ele.get(0).tagName.toLowerCase() === "input") {
+    return (_ref = ele.attr("type")) != null ? _ref : "text";
+  } else {
+    return ele.prop("type");
+  }
 };
 
 getExtremum = function(ele, type) {
@@ -108,8 +164,29 @@ reset = function() {
   this.message = "";
 };
 
-triggerEvent = function(field, ele) {
-  return $(ele).trigger("H5F:" + (field.valid ? "valid" : "invalid"), field);
+resetDefaultValue = function() {
+  var elem;
+  elem = $(this.element);
+  if (this.__checkable) {
+    elem.closest(":checked").prop("checked", false);
+    $(this.__defaultValue).prop("checked", true);
+  } else if (this.element.tagName.toLowerCase() === "select") {
+    $(":selected", elem).prop("selected", false);
+    $(this.__defaultValue).prop("selected", true);
+  } else {
+    elem.val(this.__defaultValue);
+  }
+};
+
+resetFieldStatus = function() {
+  this.__counted = false;
+  this.validated = false;
+  reset.call(this);
+  resetDefaultValue.call(this);
+};
+
+triggerValidityEvent = function(field, ele) {
+  return $(ele).trigger((field.valid ? EVENT.VALID : EVENT.INVALID), field);
 };
 
 requiredAttr = function(isCheckbox) {
@@ -120,7 +197,7 @@ requiredAttr = function(isCheckbox) {
 };
 
 validateTextualElements = function() {
-  var acEle, ele, maxVal, minVal, val, _ref, _ref1, _ref2;
+  var acEle, definedRule, ele, maxVal, message, minVal, rule, val, _ref, _ref1;
   ele = this.element;
   val = this.value();
   if (this.required && $.trim(val) === "") {
@@ -144,28 +221,37 @@ validateTextualElements = function() {
         } else {
           if (val !== "") {
             if (this.type === "url") {
-              this.valid = RULE.ABSOLUTE_URL.test(val);
+              this.valid = RULE.ABSOLUTE_URL.rule.test(val);
               if (!this.valid) {
-                this.message = this.error("NOT_AN_ABSOLUTE_URL");
+                this.message = this.error(RULE.ABSOLUTE_URL.message);
               }
             } else if (this.type === "email") {
-              this.valid = RULE.EMAIL.test(val);
+              this.valid = RULE.EMAIL.rule.test(val);
               if (!this.valid) {
-                this.message = this.error("NOT_AN_EMAIL");
+                this.message = this.error(RULE.EMAIL.message);
               }
             }
           }
           if (this.valid && (this.pattern != null) && this.pattern !== "") {
-            this.valid = ((_ref = RULE[(_ref1 = (_ref2 = this.pattern.match(new RegExp("^\s*" + PATTERN_KEY_SOURCE + "\s*$"))) != null ? _ref2[1] : void 0) != null ? _ref1 : ""]) != null ? _ref : new RegExp("^" + this.pattern + "$")).test(val);
+            definedRule = RULE[(_ref = (_ref1 = this.pattern.match(new RegExp("^\s*" + PATTERN_KEY_SOURCE + "\s*$"))) != null ? _ref1[1] : void 0) != null ? _ref : ""];
+            if (definedRule != null) {
+              rule = definedRule.rule;
+              if (definedRule.message != null) {
+                message = this.error(definedRule.message);
+              }
+            } else {
+              rule = new RegExp("^" + this.pattern + "$");
+            }
+            this.valid = rule.test(val);
             if (!this.valid) {
-              this.message = this.error("INVALID_VALUE");
+              this.message = message != null ? message : this.error("INVALID_VALUE");
             }
           }
         }
         break;
       case "number":
         if (val !== "") {
-          this.valid = RULE.NUMBER.test(val);
+          this.valid = RULE.NUMBER.rule.test(val);
           if (this.valid) {
             minVal = getExtremum(ele, "min");
             maxVal = getExtremum(ele, "max");
@@ -177,7 +263,7 @@ validateTextualElements = function() {
               this.message = this.error("OVERFLOW");
             }
           } else {
-            this.message = this.error("NOT_A_NUMBER");
+            this.message = this.error(RULE.NUMBER.message);
           }
         }
         break;
@@ -196,17 +282,17 @@ validateTextualElements = function() {
     if (this.valid && this.__validations.length > 0) {
       $.each(this.__validations, (function(_this) {
         return function(idx, opts) {
-          var _ref3;
+          var _ref2;
           _this.valid = $.isFunction(opts.handler) ? opts.handler.call(ele) === true : false;
           if (!_this.valid) {
-            _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref3 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref3 : opts.message);
+            _this.message = (/^[A-Z_]+$/.test(opts.message) ? _this.error(opts.message) : (_ref2 = typeof opts.message === "function" ? opts.message() : void 0) != null ? _ref2 : opts.message);
           }
           return _this.valid;
         };
       })(this));
     }
   }
-  triggerEvent(this, ele);
+  triggerValidityEvent(this, ele);
   return this.valid;
 };
 
@@ -215,7 +301,7 @@ validateSelectElement = function() {
     this.valid = false;
     this.message = this.error("SHOOLD_CHOOSE_AN_OPTION");
   }
-  triggerEvent(this, this.element);
+  triggerValidityEvent(this, this.element);
   return this.valid;
 };
 
@@ -252,45 +338,21 @@ validateCheckableElements = function() {
       ele = elements;
     }
   }
-  triggerEvent(this, ele.get(0));
+  triggerValidityEvent(this, ele.get(0));
   return this.valid;
 };
 
 Field = (function() {
-  function Field(ele) {
-    var elements, form, requiredElements;
-    ele = $(ele);
-    form = ele.closest("form").eq(0);
-    this.form = form.get(0);
-    this.type = elementType(ele);
-    this.name = ele.prop("name");
-    this.__validations = [];
-    if (isCheckableElement(ele)) {
-      elements = $("[name='" + this.name + "']", form);
-      requiredElements = elements.closest(requiredAttr(this.type));
-      this.element = $.makeArray(elements);
-      this.required = requiredElements.size() > 0;
-      this.label = fieldLabel((this.required ? requiredElements.eq(0) : $(this.element[0])), form);
-      this.validate = validateCheckableElements;
-    } else {
-      this.element = ele.get(0);
-      this.required = hasAttr(this.element, "required");
-      this.label = fieldLabel(ele, form);
-      if (this.element.tagName.toLowerCase() === "select") {
-        this.validate = validateSelectElement;
-      } else {
-        this.validate = validateTextualElements;
-        this.pattern = ele.attr("pattern");
-      }
-      if (this.required) {
-        labelElement(ele, form).addClass("H5F-label--required");
-      }
-    }
-    reset.call(this);
+  var _class;
+
+  function Field() {
+    return _class.apply(this, arguments);
   }
 
+  _class = fieldProps;
+
   Field.prototype.value = function() {
-    if (isCheckableElement(this.element)) {
+    if (this.__checkable) {
       return $("[name='" + this.name + "']:checked", $(this.form)).val();
     } else {
       return $(this.element).val();
@@ -342,18 +404,63 @@ Field = (function() {
     return opts;
   };
 
+  Field.prototype.disableValidation = function(isByAttr) {
+    this.__enabled = false;
+    if (isByAttr === true) {
+      this.__disabled = true;
+    }
+    if (this.__counted === true) {
+      this.__form.invalidCount--;
+    }
+    resetFieldStatus.call(this);
+    $(this.element).trigger(EVENT.DISABLED);
+    return this;
+  };
+
+
+  /*
+   * 使验证有效
+   * 
+   * @method  enableValidation
+   * @param   [validate] {Boolean}       是否立即对字段进行验证
+   * @return  {Object}
+   */
+
+  Field.prototype.enableValidation = function(validate) {
+    var _elem;
+    this.__enabled = true;
+    _elem = this.element;
+    delete this.__disabled;
+    $(_elem).trigger(EVENT.ENABLED);
+    if (validate === true) {
+      $(this.__checkable ? _elem[0] : _elem).trigger(EVENT.VALIDATE);
+    }
+    return this;
+  };
+
+  Field.prototype.isEnabled = function() {
+    return this.__enabled === true;
+  };
+
+  Field.prototype.isValid = function() {
+    return this.valid === true;
+  };
+
+  Field.prototype.isDisabled = function() {
+    if (this.__checkable) {
+      return false;
+    } else {
+      return $(this.element).prop("disabled");
+    }
+  };
+
   return Field;
 
 })();
 
-EVENT = {
-  BEFORE_VALIDATE: "H5F:beforeValidate",
-  SUBMIT: "H5F:submit",
-  DESTROY: "H5F:destroy",
-  VALIDATE: "H5F:validate"
-};
+submitButtonSelector = ":submit, :image, :reset";
 
-subBtnSels = ":submit, :image, :reset";
+validateFieldSelector = "[name]:not([type='hidden'], " + submitButtonSelector + ")";
 
 defaultSettings = {
   immediate: false
@@ -375,43 +482,63 @@ validateField = function(form, field) {
   field.reset();
   field.validated = true;
   if (field.validate()) {
-    if (field.counted === true) {
-      form.invalidCount = --form.invalidCount;
+    if (field.__counted === true) {
+      form.invalidCount--;
     }
-    field.counted = false;
+    field.__counted = false;
   } else {
-    if (field.counted !== true) {
-      form.invalidCount = ++form.invalidCount;
+    if (field.__counted !== true) {
+      form.invalidCount++;
     }
-    field.counted = true;
+    field.__counted = true;
   }
   return field;
 };
 
 validateOtherFields = function(inst, immediate) {
+  if (inst.sequence == null) {
+    return;
+  }
   return $.each(inst.sequence, function(idx, name) {
-    var ele, field;
+    var checkable, ele, field;
     field = inst.fields[name];
-    if (!immediate) {
+    ele = field.element;
+    checkable = field.__checkable;
+    if (!checkable) {
+      if (field.__disabled === true) {
+        if (field.isDisabled() === false) {
+          field.enableValidation();
+        }
+      } else {
+        if (field.isDisabled() === true) {
+          field.disableValidation(true);
+        }
+      }
+    }
+    if ((!checkable && hasAttr(ele, "data-h5f-associate")) || !immediate) {
       field.validated = false;
     }
-    ele = field.element;
-    if (field.validated === false) {
-      $($.isArray(ele) ? ele[0] : ele).trigger(EVENT.VALIDATE);
+    if (field.isEnabled() && field.validated === false) {
+      $(checkable ? ele[0] : ele).trigger(EVENT.VALIDATE);
     }
     return true;
   });
 };
 
 bindEvent = function(form, inst, immediate) {
-  $("[name]", form).on(EVENT.VALIDATE, function() {
-    return validateField(inst, inst.fields[$(this).prop("name")]);
+  form.on(EVENT.VALIDATE, "[name]", function() {
+    var f;
+    f = inst.fields[$(this).prop("name")];
+    if (f.isEnabled()) {
+      validateField(inst, f);
+    }
+    return f;
   });
   if (immediate === true) {
-    $("[name]:checkbox, [name]:radio, select[name]", form).on("change.H5F", function() {
+    form.on("change.H5F", "[name]:checkbox, [name]:radio, select[name]", function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
-    $("[name]:not(:checkbox, :radio, " + subBtnSels + ", select, option)", form).on((lowerThan(9) ? "change.H5F" : "input.H5F"), function() {
+    form.on((lowerThan(9) ? "change.H5F" : "input.H5F"), "[name]:not(:checkbox, :radio, " + submitButtonSelector + ", select, option)", function() {
       return $(this).trigger(EVENT.VALIDATE);
     });
   }
@@ -445,20 +572,53 @@ getInstId = function(form) {
   return id;
 };
 
+reorderSequence = function() {
+  var fields, seq;
+  seq = [];
+  fields = {};
+  $("" + validateFieldSelector, $(this.form)).each((function(_this) {
+    return function(idx, el) {
+      var name;
+      name = $(el).attr("name");
+      if (fields[name] == null) {
+        fields[name] = _this.addField(new Field(el));
+        seq.push(name);
+      }
+    };
+  })(this));
+  return seq;
+};
+
+updateFieldsRef = function() {
+  var seq;
+  seq = reorderSequence.call(this);
+  if (seq.length === 0) {
+    delete this.fields;
+    delete this.sequence;
+  } else {
+    $.each(this.sequence, (function(_this) {
+      return function(idx, name) {
+        if ($.inArray(name, seq) === -1) {
+          delete _this.fields[name];
+        }
+      };
+    })(this));
+    this.sequence = seq;
+  }
+  return this.fields;
+};
+
 Form = (function() {
   function Form(form) {
-    var inst;
-    inst = this;
     this.form = form;
-    this.novalidate = form.hasAttribute("novalidate");
+    this.novalidate = hasAttr(form, "novalidate");
     this.invalidCount = 0;
     initCount++;
-    $("[name]:not([type='hidden'], " + subBtnSels + ")", $(form)).each(function() {
-      var ipt, name;
-      ipt = $(this);
-      name = ipt.prop("name");
-      return inst.addField(new Field(this));
-    });
+    $("" + validateFieldSelector, $(form)).each((function(_this) {
+      return function(idx, el) {
+        return _this.addField(new Field(el));
+      };
+    })(this));
   }
 
   Form.prototype.addField = function(field) {
@@ -471,6 +631,7 @@ Form = (function() {
     }
     name = field.name;
     if (this.fields[name] == null) {
+      field.__form = this;
       field.validated = false;
       this.fields[name] = field;
       this.sequence.push(name);
@@ -482,6 +643,50 @@ Form = (function() {
     var _ref;
     return (_ref = this.fields[fieldName]) != null ? _ref.addValidation(opts) : void 0;
   };
+
+  Form.prototype.disableValidation = function(fieldName) {
+    var _ref;
+    return (_ref = this.fields[fieldName]) != null ? _ref.disableValidation() : void 0;
+  };
+
+  Form.prototype.enableValidation = function(fieldName, validate) {
+    var _ref;
+    return (_ref = this.fields[fieldName]) != null ? _ref.enableValidation(validate) : void 0;
+  };
+
+  Form.prototype.update = function() {
+    updateFieldsRef.call(this);
+    $(this.form).trigger(EVENT.UPDATED);
+    return this;
+  };
+
+
+  /*
+   * 销毁实例
+   * 
+   * @method  destroy
+   * @return  {DOM}
+   */
+
+  Form.prototype.destroy = function() {
+    var form;
+    form = $(this.form);
+    form.off(".H5F");
+    $("[name]", form).off(".H5F");
+    $(".H5F-label--required", form).removeClass("H5F-label--required");
+    if (this.novalidate) {
+      form.attr("novalidate", true);
+    } else {
+      form.removeAttr("novalidate");
+    }
+    delete this.constructor.forms[this.form["H5F-form"]];
+    delete this.form["H5F-form"];
+    this.constructor.forms.length--;
+    form.trigger(EVENT.DESTROY);
+    return form.get(0);
+  };
+
+  Form.RULES = $.extend(true, {}, RULE);
 
   Form.version = LIB_CONFIG.version;
 
@@ -526,38 +731,6 @@ Form = (function() {
 
 
   /*
-   * 销毁指定表单实例
-   * 
-   * @method  destroy
-   * @param   form {DOM/jQuery/String}
-   * @return  {Boolean}
-   */
-
-  Form.destroy = function(form) {
-    var id, inst;
-    id = getInstId(form);
-    inst = this.forms[id];
-    if (inst != null) {
-      form = $(inst.form);
-      form.off(".H5F");
-      $("[name]", form).off(".H5F");
-      $(".H5F-label--required", form).removeClass("H5F-label--required");
-      if (inst.novalidate) {
-        form.attr("novalidate", true);
-      } else {
-        form.removeAttr("novalidate");
-      }
-      delete this.forms[id];
-      delete inst.form["H5F-form"];
-      this.forms.length--;
-      form.trigger(EVENT.DESTROY);
-      return true;
-    }
-    return false;
-  };
-
-
-  /*
    * 获取指定实例
    * 
    * @method  get
@@ -574,7 +747,7 @@ Form = (function() {
   };
 
   Form.rules = function(rules) {
-    return $.extend(RULE, rules);
+    return (this.RULES = $.extend(true, {}, $.extend(RULE, rules)));
   };
 
   return Form;

@@ -25,6 +25,13 @@
   </head>
   <body>
     <div class="example">
+      <form id="form_0" action="/" method="get">
+        <div class="form-group">
+          <label for="disabledField">无法操作的字段</label>
+          <input id="disabledField" class="form-control" name="disabledField" value="" required="required" disabled="disabled">
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
       <form id="form_1" action="/" method="get" data-h5f-immediate="true">
         <div class="form-group">
           <label for="gender">性别</label>
@@ -39,8 +46,12 @@
           <input id="form_1_email" class="form-control" type="email" name="form_1_email" value="">
         </div>
         <div class="form-group">
+          <label class="control-label" for="form_1_mobile">手机号</label>
+          <input id="form_1_mobile" class="form-control" type="tel" name="form_1_mobile" value="" pattern="{{MOBILE}}" required="required">
+        </div>
+        <div class="form-group">
           <label class="control-label" for="form_1_1">文本</label>
-          <input id="form_1_1" class="form-control" type="text" name="form_1_1" value="" required="required" minlength="4" maxlength="10">
+          <input id="form_1_1" class="form-control" type="text" name="form_1_1" value="4" required="required" minlength="4" maxlength="10">
         </div>
         <div class="form-group">
           <label class="control-label" for="form_1_textarea">文本域</label>
