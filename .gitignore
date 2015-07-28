@@ -1,8 +1,4 @@
-# Directories
 /vendors
 /node_modules
-/_site
-/.sass-cache
 /.H5F-cache
-
-# Files
+/.H5Fx-cache

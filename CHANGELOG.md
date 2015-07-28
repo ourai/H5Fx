@@ -1,6 +1,6 @@
-# CHANGES
+# Changes
 
-## 0.1.1
+## 0.2.1
 
 ### Features
   * 添加 `H5F.prototype.destroy()`
