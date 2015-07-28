@@ -1,4 +1,4 @@
-# H5F
+# H5Fx
 
 这是一个基于 [HTML5 Forms](http://www.w3.org/TR/html5/forms.html) 规范的表单验证插件，即输入字段的值受标准的 HTML5 属性制约，如：
 
