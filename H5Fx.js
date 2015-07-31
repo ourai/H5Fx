@@ -146,7 +146,7 @@ labelElement = function(ele, form) {
 fieldLabel = function(ele, form, customizable) {
   var label, labelText;
   if (customizable !== false) {
-    labelText = ele.attr("data-h5f-label");
+    labelText = ele.attr("data-label");
   }
   if (labelText == null) {
     label = labelElement(ele, form);
@@ -156,7 +156,7 @@ fieldLabel = function(ele, form, customizable) {
 };
 
 associatedElement = function(ele) {
-  return $("#" + ($(ele).attr("data-h5f-associate")));
+  return $("#" + ($(ele).attr("data-associate")));
 };
 
 reset = function() {
@@ -193,7 +193,7 @@ requiredAttr = function(isCheckbox) {
   if ($.type(isCheckbox) === "string") {
     isCheckbox = isCheckbox === "checkbox";
   }
-  return "[" + (isCheckbox ? "data-h5f-" : "") + "required]";
+  return "[" + (isCheckbox ? "data-" : "") + "required]";
 };
 
 validateTextualElements = function() {
@@ -270,7 +270,7 @@ validateTextualElements = function() {
       default:
         this.message = this.error("UNKNOWN_INPUT_TYPE");
     }
-    if (this.valid && hasAttr(ele, "data-h5f-associate")) {
+    if (this.valid && hasAttr(ele, "data-associate")) {
       acEle = associatedElement(ele);
       if (acEle.size()) {
         this.valid = val === acEle.val();
@@ -515,7 +515,7 @@ validateOtherFields = function(inst, immediate) {
         }
       }
     }
-    if ((!checkable && hasAttr(ele, "data-h5f-associate")) || !immediate) {
+    if ((!checkable && hasAttr(ele, "data-associate")) || !immediate) {
       field.validated = false;
     }
     if (field.isEnabled() && field.validated === false) {
@@ -704,7 +704,7 @@ Form = (function() {
       opts = $.extend({}, defaultSettings, settings, {
         immediate: (function() {
           var attr;
-          attr = form.attr("data-h5f-immediate");
+          attr = form.attr("data-immediate");
           if (attr === "true") {
             attr = true;
           } else if (attr === "false") {
@@ -722,7 +722,7 @@ Form = (function() {
         F.forms.length++;
         this[flag] = id;
         form.attr("novalidate", true);
-        if (form.attr("data-h5f-novalidate") == null) {
+        if (form.attr("data-novalidate") == null) {
           return bindEvent(form, inst, opts.immediate === true);
         }
       }

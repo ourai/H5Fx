@@ -46,7 +46,7 @@ validateOtherFields = ( inst, immediate ) ->
       else
         field.disableValidation(true) if field.isDisabled() is true
     
-    field.validated = false if (not checkable and hasAttr(ele, "data-h5f-associate")) or not immediate
+    field.validated = false if (not checkable and hasAttr(ele, "data-associate")) or not immediate
 
     $(if checkable then ele[0] else ele).trigger(EVENT.VALIDATE) if field.isEnabled() and field.validated is false
 
@@ -228,7 +228,7 @@ class Form
       flag = "H5F-form"
       opts = $.extend {}, defaultSettings, settings, {
           immediate: do ->
-            attr = form.attr "data-h5f-immediate"
+            attr = form.attr "data-immediate"
 
             if attr is "true"
               attr = true
@@ -251,7 +251,7 @@ class Form
         @[flag] = id
         form.attr "novalidate", true
 
-        bindEvent(form, inst, opts.immediate is true) if not form.attr("data-h5f-novalidate")?
+        bindEvent(form, inst, opts.immediate is true) if not form.attr("data-novalidate")?
 
   ###
   # 获取指定实例

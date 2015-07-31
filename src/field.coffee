@@ -59,7 +59,7 @@ labelElement = ( ele, form ) ->
 
 # 获取字段文本标签
 fieldLabel = ( ele, form, customizable ) ->
-  labelText = ele.attr("data-h5f-label") if customizable isnt false
+  labelText = ele.attr("data-label") if customizable isnt false
 
   if not labelText?
     label = labelElement ele, form
@@ -69,7 +69,7 @@ fieldLabel = ( ele, form, customizable ) ->
 
 # 获取关联的字段元素
 associatedElement = ( ele ) ->
-  return $ "##{$(ele).attr "data-h5f-associate"}"
+  return $ "##{$(ele).attr "data-associate"}"
 
 # 重置验证结果相关属性
 reset = ->
@@ -111,7 +111,7 @@ triggerValidityEvent = ( field, ele ) ->
 requiredAttr = ( isCheckbox ) ->
   isCheckbox = isCheckbox is "checkbox" if $.type(isCheckbox) is "string"
 
-  return "[#{if isCheckbox then "data-h5f-" else ""}required]"
+  return "[#{if isCheckbox then "data-" else ""}required]"
 
 # 验证文本类字段的有效性
 validateTextualElements = ->
@@ -179,7 +179,7 @@ validateTextualElements = ->
         @message = @error "UNKNOWN_INPUT_TYPE"
 
     # 对有关联字段的字段进行验证
-    if @valid and hasAttr(ele, "data-h5f-associate")
+    if @valid and hasAttr(ele, "data-associate")
       acEle = associatedElement ele
 
       if acEle.size()
