@@ -18,7 +18,8 @@
     "*.md",
     "Gruntfile.coffee"
   ],
-  "dependencies": {
+  "devDependencies": {
+    "h5f": "https://github.com/ryanseddon/H5F.git#1.1.1",
     "jquery": "https://github.com/jquery/jquery.git#1.9.1",
     "bootstrap": "https://github.com/twbs/bootstrap.git#3.3.2"
   },
@@ -27,6 +28,7 @@
     "validation",
     "validator",
     "html5",
-    "javascript"
+    "javascript",
+    "h5f"
   ]
 }
