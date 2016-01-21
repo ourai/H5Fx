@@ -1,7 +1,7 @@
 {
   "name": "h5fx",
   "description": "A form validation plugin based on HTML5",
-  "main": "H5F.js",
+  "main": "H5Fx.js",
   "moduleType": "globals",
   "keywords": [
     "form",
