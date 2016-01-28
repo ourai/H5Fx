@@ -1,0 +1,44 @@
+{
+  "name": "h5fx",
+  "description": "A form validation plugin based on HTML5",
+  "main": "H5Fx.js",
+  "moduleType": "globals",
+  "keywords": [
+    "form",
+    "validator",
+    "html5",
+    "plugin"
+  ],
+  "dependencies": {
+    "jquery": "~1"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ourai/H5Fx.git"
+  },
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "docs",
+    "build",
+    "src",
+    "test",
+    ".*",
+    "*.json",
+    "*.md",
+    "Gruntfile.coffee"
+  ],
+  "homepage": "https://github.com/ourai/H5Fx",
+  "version": "0.2.3",
+  "_release": "0.2.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.2.3",
+    "commit": "4fcec5ee81567b4902dd5b9b15ca0f66af6f1407"
+  },
+  "_source": "git://github.com/ourai/H5Fx.git",
+  "_target": "0.2.3",
+  "_originalSource": "h5fx",
+  "_direct": true
+}

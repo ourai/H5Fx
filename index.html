@@ -1,11 +1,163 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" dir="ltr">
   <head>
     <meta charset="UTF-8">
-    <title>H5Fx</title>
+    <title>H5Fx，一个基于 HTML Forms 规范的表单验证插件。</title>
+<!--     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="{{ keywords }}">
+    <meta name="description" content="{{ description | strip_html }}">
+    <link rel="author" href="{{ site.data.author.link }}">
+    <link rel="shortcut icon" href="{{ site.data.url.img }}/favicon.ico"> -->
+    <link rel="stylesheet" href="bower_components/bootstrap-3.3.6/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="stylesheets/h5f.css">
+    <!--[if lt IE 9]>
+    <script src="{{ site_js_url }}/html5shiv-printshiv.min.js"></script>
+    <![endif]-->
+    <script src="bower_components/jquery-1.12.0/dist/jquery.min.js"></script>
   </head>
-  <body>
-    <h1>H5Fx</h1>
-    <p>Nothing here...</p>
+  <body itemscope itemtype="http://schema.org/WebPage">
+    <div class="container">
+      <header class="jumbotron">
+        <h1>H5Fx</h1>
+        <p>一个基于 HTML Forms 规范的表单验证插件</p>
+        <p>详细信息请看 <a href="https://github.com/ourai/H5Fx" target="_blank">GitHub 项目页面</a></p>
+      </header>
+      <main class="row">
+        <div class="col-xs-12 col-sm-6">
+          <h2>原生的表单验证</h2>
+          <form id="exampleForm_1">
+            <fieldset>
+              <legend>基本信息</legend>
+              <div class="form-group">
+                <label for="exampleForm_1_nickname">昵称</label>
+                <input id="exampleForm_1_nickname" class="form-control" type="text" name="nickname" value="" required="required">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_1_email">邮箱</label>
+                <input id="exampleForm_1_email" class="form-control" type="email" name="email" value="" placeholder="ourai@example.com" required="required">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_1_description">个人简介</label>
+                <textarea id="exampleForm_1_description" class="form-control" name="description" pattern=".*0" required="required" minlength="2" maxlength="4" rows="4" placeholder="请用 2～4 个字描述一下自己"></textarea>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>详细信息</legend>
+              <div class="form-group">
+                <label for="exampleForm_1_website">个人网站</label>
+                <input id="exampleForm_1_website" class="form-control" type="url" name="website" value="">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_1_telephone">电话</label>
+                <input id="exampleForm_1_telephone" class="form-control" type="tel" name="telephone" value="">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_1_gender">性别</label>
+                <select id="exampleForm_1_gender" name="gender" class="form-control" required>
+                  <option></option>
+                  <option value="1">男</option>
+                  <option value="0">女</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="checkbox-inline"><input type="checkbox" name="sexual_orientation" value="1" required="required"> 男</label>
+                <label class="checkbox-inline"><input type="checkbox" name="sexual_orientation" value="0" data-h5f-required="true" data-h5f-label="性取向"> 女</label>
+              </div>
+              <div class="form-group">
+                <label class="radio-inline"><input type="radio" name="marriage" value="0"> 单身</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="1" required="required" data-h5f-label="婚恋状态"> 恋爱</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="2"> 已婚</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="3"> 离婚</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="4"> 丧偶</label>
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_1_children">孩子数量</label>
+                <input id="exampleForm_1_children" class="form-control" type="number" name="children" value="0" required="required" min="5" max="10" pattern=".*0">
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>安全信息</legend>
+              <div class="form-group">
+                <label for="exampleForm_1_password">密码</label>
+                <input id="exampleForm_1_password" class="form-control" type="password" name="password" value="" required="required" minlength="4" maxlength="10" placeholder="请输入 4～10 个字符">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_1_passwordConfirmation">确认密码</label>
+                <input id="exampleForm_1_passwordConfirmation" class="form-control" type="password" name="password_confirmation" value="" data-h5f-associate="exampleForm_1_password" placeholder="请再输入一次密码">
+              </div>
+            </fieldset>
+            <input class="btn btn-primary btn-block" type="submit">
+          </form>
+        </div>
+        <div id="H5FValidation" class="col-xs-12 col-sm-6">
+          <h2>H5F 的表单验证</h2>
+          <form id="exampleForm_2" data-h5f-immediate="true">
+            <fieldset>
+              <legend>基本信息</legend>
+              <div class="form-group">
+                <label for="exampleForm_2_nickname">昵称</label>
+                <input id="exampleForm_2_nickname" class="form-control" type="text" name="nickname" value="" required="required">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_2_email">邮箱</label>
+                <input id="exampleForm_2_email" class="form-control" type="email" name="email" value="" placeholder="ourai@example.com" required="required">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_2_description">个人简介</label>
+                <textarea id="exampleForm_2_description" class="form-control" name="description" pattern=".*0" required="required" minlength="2" maxlength="4" rows="4" placeholder="请用 2～4 个字描述一下自己"></textarea>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>详细信息</legend>
+              <div class="form-group">
+                <label for="exampleForm_2_website">个人网站</label>
+                <input id="exampleForm_2_website" class="form-control" type="url" name="website" value="">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_2_telephone">电话</label>
+                <input id="exampleForm_2_telephone" class="form-control" type="tel" name="telephone" value="">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_2_gender">性别</label>
+                <select id="exampleForm_2_gender" name="gender" class="form-control" required>
+                  <option></option>
+                  <option value="1">男</option>
+                  <option value="0">女</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="checkbox-inline"><input type="checkbox" name="sexual_orientation" value="1" required="required"> 男</label>
+                <label class="checkbox-inline"><input type="checkbox" name="sexual_orientation" value="0" data-h5f-required="true" data-h5f-label="性取向"> 女</label>
+              </div>
+              <div class="form-group">
+                <label class="radio-inline"><input type="radio" name="marriage" value="0"> 单身</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="1" required="required" data-h5f-label="婚恋状态"> 恋爱</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="2"> 已婚</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="3"> 离婚</label>
+                <label class="radio-inline"><input type="radio" name="marriage" value="4"> 丧偶</label>
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_2_children">孩子数量</label>
+                <input id="exampleForm_2_children" class="form-control" type="number" name="children" value="0" required="required" min="5" max="10" pattern=".*0">
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>安全信息</legend>
+              <div class="form-group">
+                <label for="exampleForm_2_password">密码</label>
+                <input id="exampleForm_2_password" class="form-control" type="password" name="password" value="" required="required" minlength="4" maxlength="10" placeholder="请输入 4～10 个字符">
+              </div>
+              <div class="form-group">
+                <label for="exampleForm_2_passwordConfirmation">确认密码</label>
+                <input id="exampleForm_2_passwordConfirmation" class="form-control" type="password" name="password_confirmation" value="" data-h5f-associate="exampleForm_2_password" placeholder="请再输入一次密码">
+              </div>
+            </fieldset>
+            <input class="btn btn-primary btn-block" type="submit">
+          </form>
+        </div>
+      </main>
+    </div>
+    <script src="bower_components/h5fx-0.2.3/H5Fx.min.js"></script>
+    <script src="javascripts/h5f.js"></script>
   </body>
 </html>
