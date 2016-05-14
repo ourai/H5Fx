@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>test</title>
+  </head>
+  <body>
+    <form action="">
+      <label>hahah <input type="text" required></label>
+      <input type="email" required>
+      <input type="number">
+      <textarea name="" id="" cols="30" rows="10"></textarea>
+      <input type="hidden">
+      <input type="password">
+      <input type="tel">
+      <select name="" id="" multiple="">
+        <option value=""></option>
+      </select>
+      <input type="url">
+      <input type="search">
+      <select name="" id="">
+        <option value=""></option>
+      </select>
+      <button type="submit">提交</button>
+    </form>
+    <script>
+    </script>
+    <script src="./bower_components/mod/mod-amd.js"></script>
+    <!-- <script src="h5fx.js"></script> -->
+    <script src="./dist/index.js"></script>
+    <!-- <script>require("dist/index");</script> -->
+    <!-- <script src="./bower_components/curl/dist/curl/curl.js"></script>
+    <script>
+      curl("dist/index", function( h5fx ) {
+        // console.log(h5fx);
+      });
+    </script> -->
+    <!-- <script>
+      var form = document.getElementsByTagName("form")[0];
+      var ipt = document.createElement("input");
+
+      form.elements[0].setCustomValidity("hahaha");
+      form.elements[1].setCustomValidity("hehehe");
+      console.dir(form.elements[0].willValidate);
+      console.dir(form.elements[1].checkValidity.toString());
+
+      console.dir(form);
+      console.dir(ipt);
+
+      var APIs = ["validity", "validationMessage", "setCustomValidity", "checkValidity", "willValidate"];
+
+      var i = 0, l = APIs.length;
+
+      for ( ; i < l; i++ ) {
+        console.log(APIs[i], ipt.constructor.hasOwnProperty(APIs[i]));
+      }
+    </script> -->
+  </body>
+</html>

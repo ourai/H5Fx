@@ -1,4 +1,5 @@
-/vendors
+/bower_components
 /node_modules
 /.H5F-cache
 /.H5Fx-cache
+/_backup
