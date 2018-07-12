@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <link rel="stylesheet" href="/_backup/test/bootstrap/css/bootstrap.css">
+    <script src="/_backup/test/h5f.min.js"></script>
+    <script src="/_backup/test/jquery.min.js"></script>
+    <script src="/_backup/test/H5Fx.js"></script>
+    <script src="/_backup/test/test.js"></script>
+    <style>
+      .example {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px 0;
+      }
+
+      .example form {
+        margin-top: 50px;
+      }
+
+      .example form:first-child {
+        margin-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="example">
+      <form id="form_0" action="/" method="get">
+        <div class="form-group">
+          <label for="disabledField">无法操作的字段</label>
+          <input id="disabledField" class="form-control" name="disabledField" value="" required="required" disabled="disabled">
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
+      <form id="form_1" action="/" method="get" data-h5f-immediate="true">
+        <div class="form-group">
+          <label for="gender">性别</label>
+          <select id="gender" name="gender" class="form-control" required>
+            <option value=""></option>
+            <option value="1">男</option>
+            <option value="0">女</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_1_email">E-mail</label>
+          <input id="form_1_email" class="form-control" type="email" name="form_1_email" value="">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_1_mobile">手机号</label>
+          <input id="form_1_mobile" class="form-control" type="tel" name="form_1_mobile" value="" pattern="{{MOBILE}}" required="required">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_1_1">文本</label>
+          <input id="form_1_1" class="form-control" type="text" name="form_1_1" value="4" required="required" minlength="4" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_1_textarea">文本域</label>
+          <textarea id="form_1_textarea" class="form-control" name="form_1_textarea" required="required"></textarea>
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
+      <form id="form_2" action="/" method="get" data-h5f-immediate="false" novalidate="true">
+        <div class="form-group">
+          <label class="control-label" for="form_2_1">文本</label>
+          <input id="form_2_1" class="form-control" type="text" name="form_2_1" value="" pattern=".*0" required="required" minlength="2" maxlength="4" data-h5f-label="哈哈哈文本框">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_2_2">数字</label>
+          <input id="form_2_2" class="form-control" type="number" name="form_2_2" value="" min="5" max="10" pattern=".*0">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="radio_1_1">单选框1</label>
+          <input type="radio" id="radio_1_1" name="radio_1" value="1">
+          <label class="control-label" for="radio_1_2">单选框2</label>
+          <input type="radio" id="radio_1_2" name="radio_1" required="required" data-h5f-label="Test radio buttons" value="2">
+          <label class="control-label" for="radio_1_3">单选框3</label>
+          <input type="radio" id="radio_1_3" name="radio_1" value="3">
+          <label class="control-label" for="radio_1_4">单选框4</label>
+          <input type="radio" id="radio_1_4" name="radio_1" value="4">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="checkbox_1_1">多选框1</label>
+          <input type="checkbox" id="checkbox_1_1" name="checkbox_1" value="1" data-h5f-required="true" data-h5f-label="Test checkboxes">
+          <label class="control-label" for="checkbox_1_2">多选框2</label>
+          <input type="checkbox" id="checkbox_1_2" name="checkbox_1" required="required" value="2">
+          <label class="control-label" for="checkbox_1_3">多选框3</label>
+          <input type="checkbox" id="checkbox_1_3" name="checkbox_1" value="3">
+          <label class="control-label" for="checkbox_1_4">多选框4</label>
+          <input type="checkbox" id="checkbox_1_4" name="checkbox_1" value="4">
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
+      <form id="form_3" action="/" method="get">
+        <div class="form-group">
+          <label class="control-label" for="form_3_password">密码</label>
+          <input id="form_3_password" class="form-control" type="password" value="" name="password" required="required">
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="form_3_password_confirmation">确认密码</label>
+          <input id="form_3_password_confirmation" class="form-control" type="password" value="" name="password_confirmation" data-h5f-associate="form_3_password">
+        </div>
+        <input class="btn btn-primary btn-block" type="submit">
+      </form>
+    </div>
+  </body>
+</html>

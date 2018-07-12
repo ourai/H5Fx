@@ -1,0 +1,34 @@
+{
+  "name": "H5Fx",
+  "version": "1.0.0",
+  "main": [
+    "H5Fx.js",
+    "H5Fx.min.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "vendors",
+    "docs",
+    "build",
+    "src",
+    "test",
+    "*.json",
+    "*.md",
+    "Gruntfile.coffee"
+  ],
+  "devDependencies": {
+    "h5f": "https://github.com/ryanseddon/H5F.git#1.1.1",
+    "jquery": "https://github.com/jquery/jquery.git#1.9.1",
+    "bootstrap": "https://github.com/twbs/bootstrap.git#3.3.2"
+  },
+  "keywords": [
+    "form",
+    "validation",
+    "validator",
+    "html5",
+    "javascript",
+    "h5f"
+  ]
+}
